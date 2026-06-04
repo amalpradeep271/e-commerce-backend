@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import { orderTable, orderItemTable, orderStatusTable, cartItemTable, productTable } from '../db/schema';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and } from 'drizzle-orm';
 
 @Injectable()
 export class OrdersService {
@@ -158,4 +158,36 @@ export class OrdersService {
       };
     });
   }
+
+  async getOrderTracking(userId: string, codeOrId: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(codeOrId);
+
+    const [order] = await this.drizzleService.db
+      .select()
+      .from(orderTable)
+      .where(
+        and(
+          eq(orderTable.userId, userId),
+          isUuid ? eq(orderTable.id, codeOrId) : eq(orderTable.code, codeOrId)
+        )
+      )
+      .execute();
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const statuses = await this.drizzleService.db
+      .select()
+      .from(orderStatusTable)
+      .where(eq(orderStatusTable.orderId, order.id))
+      .execute();
+
+    return statuses.map((status) => ({
+      title: status.title,
+      createdDate: status.statusDate.toISOString(),
+      done: status.isDone,
+    }));
+  }
 }
+

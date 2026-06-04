@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -24,5 +24,12 @@ export class OrdersController {
   @ApiResponse({ status: 200, description: 'Returns order checkout history' })
   async getOrders(@CurrentUser() user: any) {
     return this.ordersService.getOrders(user.id);
+  }
+
+  @Get(':id/track')
+  @ApiOperation({ summary: 'Get tracking timeline for an order' })
+  @ApiResponse({ status: 200, description: 'Returns tracking timeline' })
+  async getOrderTracking(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.ordersService.getOrderTracking(user.id, id);
   }
 }

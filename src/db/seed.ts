@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
+import * as bcrypt from 'bcrypt';
 import 'dotenv/config';
 
 const connectionString = process.env.DATABASE_URL;
@@ -37,7 +38,33 @@ async function main() {
     await db.delete(schema.productTable).execute();
     await db.delete(schema.categoryTable).execute();
     await db.delete(schema.ageTable).execute();
+    await db.delete(schema.userTable).execute();
     console.log('Database records cleaned up.');
+
+    // 0.5. Seed Users
+    console.log('Inserting users...');
+    const adminPasswordHash = await bcrypt.hash('adminpassword', 10);
+    const userPasswordHash = await bcrypt.hash('userpassword', 10);
+    await db
+      .insert(schema.userTable)
+      .values([
+        {
+          firstName: 'Admin',
+          lastName: 'User',
+          email: 'admin@ecommerce.com',
+          passwordHash: adminPasswordHash,
+          role: 'admin',
+        },
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'user@ecommerce.com',
+          passwordHash: userPasswordHash,
+          role: 'user',
+        },
+      ])
+      .execute();
+    console.log('Users seeded.');
 
     // 1. Seed Age Ranges
     console.log('Inserting age ranges...');

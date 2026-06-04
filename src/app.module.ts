@@ -11,6 +11,11 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
+import { AdminModule } from './admin/admin.module';
+import { CouponsModule } from './coupons/coupons.module';
+import { AddressesModule } from './addresses/addresses.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -31,6 +36,11 @@ import { AppService } from './app.service';
     CartModule,
     OrdersModule,
     ReviewsModule,
+    CloudinaryModule,
+    AdminModule,
+    CouponsModule,
+    AddressesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,9 +8,11 @@ export const userTable = pgTable('users', {
   email: varchar('email').notNull().unique(),
   passwordHash: varchar('password_hash').notNull(),
   image: varchar('image'),
+  role: varchar('role').default('user').notNull(), // 'user' | 'admin'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
 
 // 2. Ages Table (for user signup metadata)
 export const ageTable = pgTable('ages', {
@@ -146,4 +148,46 @@ export const favoriteTable = pgTable('favorites', {
   productId: uuid('product_id').notNull().references(() => productTable.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// 16. Coupons Table
+export const couponTable = pgTable('coupons', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  code: varchar('code').notNull().unique(),
+  discountType: varchar('discount_type').notNull(), // 'percentage' | 'fixed'
+  discountValue: numeric('discount_value', { precision: 10, scale: 2 }).notNull(),
+  minOrderAmount: numeric('min_order_amount', { precision: 10, scale: 2 }).default('0.00').notNull(),
+  maxUses: integer('max_uses'),
+  currentUses: integer('current_uses').default(0).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// 17. User Addresses Table
+export const addressTable = pgTable('addresses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => userTable.id, { onDelete: 'cascade' }),
+  label: varchar('label').notNull(), // 'Home' | 'Work' | 'Other'
+  fullName: varchar('full_name').notNull(),
+  phone: varchar('phone').notNull(),
+  addressLine1: varchar('address_line_1').notNull(),
+  addressLine2: varchar('address_line_2'),
+  city: varchar('city').notNull(),
+  state: varchar('state').notNull(),
+  pinCode: varchar('pin_code').notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// 18. Notifications Table
+export const notificationTable = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => userTable.id, { onDelete: 'cascade' }), // null means global/broadcast
+  title: varchar('title').notNull(),
+  body: text('body').notNull(),
+  type: varchar('type').notNull(), // 'order' | 'promo' | 'system'
+  isRead: boolean('is_read').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 
