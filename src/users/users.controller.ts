@@ -1,19 +1,20 @@
-import { Controller, Get, Post, UploadedFile, UseGuards, UseInterceptors, Req } from '@nestjs/common';
+import { Controller, Get, Post, UploadedFile, UseGuards, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import type { Request } from 'express';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile details' })
@@ -22,17 +23,7 @@ export class UsersController {
   }
 
   @Post('me/avatar')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public/uploads/avatars',
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload user profile picture' })
   @ApiBody({
@@ -49,13 +40,12 @@ export class UsersController {
   async uploadAvatar(
     @CurrentUser() user: any,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
   ) {
-    // Generate server URL
-    const host = req.get('host');
-    const protocol = req.protocol;
-    const imageUrl = `${protocol}://${host}/public/uploads/avatars/${file.filename}`;
-    
-    return this.usersService.updateAvatar(user.id, imageUrl);
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+
+    const uploadResponse = await this.cloudinaryService.uploadFile(file.buffer, 'avatars');
+    return this.usersService.updateAvatar(user.id, uploadResponse.secure_url);
   }
 }
