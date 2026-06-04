@@ -51,11 +51,19 @@ export class AuthService {
       .execute();
 
     // 4. Generate JWT
-    const token = this.jwtService.sign({ userId: newUser.id, email: newUser.email });
+    const accessToken = this.jwtService.sign(
+      { userId: newUser.id, email: newUser.email, type: 'access' },
+      { expiresIn: '1d' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { userId: newUser.id, email: newUser.email, type: 'refresh' },
+      { expiresIn: '7d' },
+    );
 
     return {
       message: 'Sign up was successful',
-      token,
+      accessToken,
+      refreshToken,
       user: {
         userId: newUser.id,
         firstName: newUser.firstName,
@@ -87,11 +95,19 @@ export class AuthService {
     }
 
     // 3. Generate JWT
-    const token = this.jwtService.sign({ userId: user.id, email: user.email });
+    const accessToken = this.jwtService.sign(
+      { userId: user.id, email: user.email, type: 'access' },
+      { expiresIn: '1d' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { userId: user.id, email: user.email, type: 'refresh' },
+      { expiresIn: '7d' },
+    );
 
     return {
       message: 'Sign in was successful',
-      token,
+      accessToken,
+      refreshToken,
       user: {
         userId: user.id,
         firstName: user.firstName,
@@ -112,5 +128,43 @@ export class AuthService {
       id: age.id,
       value: age.value,
     }));
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const [user] = await this.drizzleService.db
+        .select({
+          id: userTable.id,
+          email: userTable.email,
+        })
+        .from(userTable)
+        .where(eq(userTable.id, payload.userId))
+        .execute();
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const newAccessToken = this.jwtService.sign(
+        { userId: user.id, email: user.email, type: 'access' },
+        { expiresIn: '1d' },
+      );
+      const newRefreshToken = this.jwtService.sign(
+        { userId: user.id, email: user.email, type: 'refresh' },
+        { expiresIn: '7d' },
+      );
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
   }
 }

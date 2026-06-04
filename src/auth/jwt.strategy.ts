@@ -19,10 +19,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: { userId: string; email: string }) {
+  async validate(payload: { userId: string; email: string; type?: string }) {
     const userId = payload.userId;
     if (!userId) {
       throw new UnauthorizedException();
+    }
+
+    if (payload.type !== 'access') {
+      throw new UnauthorizedException('Invalid token type');
     }
 
     const [user] = await this.drizzleService.db
