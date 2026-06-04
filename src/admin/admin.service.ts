@@ -179,9 +179,9 @@ export class AdminService {
         ...product,
         price: Number(product.price),
         discountPrice: Number(product.discountPrice),
-        colors: pColors,
-        sizes: pSizes,
-        images: pImages,
+        colors: pColors.map((c) => ({ title: c.title, hexCode: c.hexCode })),
+        sizes: pSizes.map((s) => s.size),
+        images: pImages.map((i) => i.url),
       };
     });
   }
@@ -268,6 +268,45 @@ export class AdminService {
 
       return product;
     });
+  }
+
+  async getProduct(id: string) {
+    const [product] = await this.drizzleService.db
+      .select()
+      .from(productTable)
+      .where(eq(productTable.id, id))
+      .execute();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const colors = await this.drizzleService.db
+      .select()
+      .from(productColorTable)
+      .where(eq(productColorTable.productId, id))
+      .execute();
+
+    const sizes = await this.drizzleService.db
+      .select()
+      .from(productSizeTable)
+      .where(eq(productSizeTable.productId, id))
+      .execute();
+
+    const images = await this.drizzleService.db
+      .select()
+      .from(productImageTable)
+      .where(eq(productImageTable.productId, id))
+      .execute();
+
+    return {
+      ...product,
+      price: Number(product.price),
+      discountPrice: Number(product.discountPrice),
+      colors: colors.map((c) => ({ title: c.title, hexCode: c.hexCode })),
+      sizes: sizes.map((s) => s.size),
+      images: images.map((i) => i.url),
+    };
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
@@ -817,9 +856,26 @@ export class AdminService {
     return { message: 'Coupon deleted successfully' };
   }
 
-  // ==========================================
-  // NOTIFICATIONS
-  // ==========================================
+  async getNotifications() {
+    return this.drizzleService.db
+      .select({
+        id: notificationTable.id,
+        title: notificationTable.title,
+        body: notificationTable.body,
+        type: notificationTable.type,
+        isRead: notificationTable.isRead,
+        createdAt: notificationTable.createdAt,
+        user: {
+          firstName: userTable.firstName,
+          lastName: userTable.lastName,
+          email: userTable.email,
+        },
+      })
+      .from(notificationTable)
+      .leftJoin(userTable, eq(notificationTable.userId, userTable.id))
+      .orderBy(desc(notificationTable.createdAt))
+      .execute();
+  }
 
   async sendNotification(dto: SendNotificationDto) {
     if (dto.userId) {
@@ -847,5 +903,9 @@ export class AdminService {
       .execute();
 
     return notification;
+  }
+
+  async uploadGenericImage(fileBuffer: Buffer) {
+    return this.cloudinaryService.uploadFile(fileBuffer, 'general');
   }
 }

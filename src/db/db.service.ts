@@ -30,7 +30,20 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
       max: 3,
     });
 
+    this.pool.on('error', (err) => {
+      console.error('Unexpected error on idle pg client:', err.message);
+    });
+
     this.db = drizzle({ client: this.pool, schema });
+
+    // Keep-alive query every 4 minutes to prevent Neon serverless compute from auto-suspending
+    setInterval(async () => {
+      try {
+        await this.pool.query('SELECT 1');
+      } catch (err: any) {
+        console.error('Database keep-alive ping failed:', err.message);
+      }
+    }, 4 * 60 * 1000);
   }
 
   async onModuleDestroy() {

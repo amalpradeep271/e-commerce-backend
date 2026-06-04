@@ -15,6 +15,7 @@ export class UsersService {
         lastName: userTable.lastName,
         email: userTable.email,
         image: userTable.image,
+        role: userTable.role,
       })
       .from(userTable)
       .where(eq(userTable.id, userId))
@@ -30,6 +31,7 @@ export class UsersService {
       lastName: user.lastName,
       email: user.email,
       image: user.image ?? '',
+      role: user.role,
     };
   }
 

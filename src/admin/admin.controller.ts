@@ -79,6 +79,13 @@ export class AdminController {
     return this.adminService.createProduct(createProductDto);
   }
 
+  @Get('products/:id')
+  @ApiOperation({ summary: 'Get a product by ID' })
+  @ApiResponse({ status: 200, description: 'Returns detailed product' })
+  async getProduct(@Param('id') id: string) {
+    return this.adminService.getProduct(id);
+  }
+
   @Put('products/:id')
   @ApiOperation({ summary: 'Update a product' })
   @ApiResponse({ status: 200, description: 'Returns updated status' })
@@ -277,10 +284,41 @@ export class AdminController {
   // NOTIFICATIONS
   // ==========================================
 
+  @Get('notifications')
+  @ApiOperation({ summary: 'Get all sent notifications' })
+  @ApiResponse({ status: 200, description: 'Returns notifications list' })
+  async getNotifications() {
+    return this.adminService.getNotifications();
+  }
+
   @Post('notifications')
   @ApiOperation({ summary: 'Send push/broadcast notification' })
   @ApiResponse({ status: 201, description: 'Returns created notification' })
   async sendNotification(@Body() dto: SendNotificationDto) {
     return this.adminService.sendNotification(dto);
+  }
+
+  @Post('uploads')
+  @UseInterceptors(FileInterceptor('image'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload an image to Cloudinary (generic)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Returns uploaded image URL' })
+  async uploadGenericImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+    const uploadResult = await this.adminService.uploadGenericImage(file.buffer);
+    return { url: uploadResult.secure_url };
   }
 }
