@@ -34,16 +34,25 @@ export class AddToCartDto {
   @IsNumber()
   discountPrice: number;
 
-  @ApiProperty({ example: 159.98, description: 'Total price for this item selection' })
+  @ApiProperty({
+    example: 159.98,
+    description: 'Total price for this item selection',
+  })
   @IsNumber()
   totalPrice: number;
 
-  @ApiProperty({ example: 'http://image.url', description: 'Product thumbnail image url' })
+  @ApiProperty({
+    example: 'http://image.url',
+    description: 'Product thumbnail image url',
+  })
   @IsString()
   @IsNotEmpty()
   productImage: string;
 
-  @ApiProperty({ example: '2026-06-02T12:00:00.000Z', description: 'Date added' })
+  @ApiProperty({
+    example: '2026-06-02T12:00:00.000Z',
+    description: 'Date added',
+  })
   @IsString()
   @IsNotEmpty()
   createdDate: string;

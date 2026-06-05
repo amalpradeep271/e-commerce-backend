@@ -19,7 +19,9 @@ export class CloudinaryService {
       });
       this.logger.log('Cloudinary configured successfully.');
     } else {
-      this.logger.warn('Cloudinary environment variables are missing. File uploads will fail.');
+      this.logger.warn(
+        'Cloudinary environment variables are missing. File uploads will fail.',
+      );
     }
   }
 
@@ -29,7 +31,11 @@ export class CloudinaryService {
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       if (!cloudinary.config().api_key) {
-        reject(new Error('Cloudinary is not configured. Add CLOUDINARY_* environment variables.'));
+        reject(
+          new Error(
+            'Cloudinary is not configured. Add CLOUDINARY_* environment variables.',
+          ),
+        );
         return;
       }
 

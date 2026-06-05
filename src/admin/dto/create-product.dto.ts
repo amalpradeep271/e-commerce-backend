@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -15,12 +21,18 @@ class ColorDto {
 }
 
 export class CreateProductDto {
-  @ApiProperty({ description: 'Custom productId string mapping for the Flutter app', example: 'prod_15' })
+  @ApiProperty({
+    description: 'Custom productId string mapping for the Flutter app',
+    example: 'prod_15',
+  })
   @IsString()
   @IsNotEmpty()
   productId: string;
 
-  @ApiProperty({ description: 'Category ID (UUID)', example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' })
+  @ApiProperty({
+    description: 'Category ID (UUID)',
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  })
   @IsString()
   @IsNotEmpty()
   categoryId: string;
@@ -30,17 +42,26 @@ export class CreateProductDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: 'Product description', example: 'A lightweight and breathable cotton shirt' })
+  @ApiProperty({
+    description: 'Product description',
+    example: 'A lightweight and breathable cotton shirt',
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ description: 'Dimensions / Fit description', example: 'Regular Fit' })
+  @ApiProperty({
+    description: 'Dimensions / Fit description',
+    example: 'Regular Fit',
+  })
   @IsString()
   @IsNotEmpty()
   dimensions: string;
 
-  @ApiProperty({ description: 'Manufacturing information', example: '100% Cotton, Made in India' })
+  @ApiProperty({
+    description: 'Manufacturing information',
+    example: '100% Cotton, Made in India',
+  })
   @IsString()
   @IsNotEmpty()
   manufactureInformation: string;
@@ -49,11 +70,17 @@ export class CreateProductDto {
   @IsNumber()
   price: number;
 
-  @ApiProperty({ description: 'Discount price (set to 0.00 for no discount)', example: 19.99 })
+  @ApiProperty({
+    description: 'Discount price (set to 0.00 for no discount)',
+    example: 19.99,
+  })
   @IsNumber()
   discountPrice: number;
 
-  @ApiProperty({ description: 'Gender category (0=Unisex, 1=Male, 2=Female)', example: 0 })
+  @ApiProperty({
+    description: 'Gender category (0=Unisex, 1=Male, 2=Female)',
+    example: 0,
+  })
   @IsNumber()
   gender: number;
 
@@ -68,7 +95,10 @@ export class CreateProductDto {
   @Type(() => ColorDto)
   colors: ColorDto[];
 
-  @ApiProperty({ description: 'Image URLs (if already uploaded/seeded)', example: ['https://example.com/img1.jpg'] })
+  @ApiProperty({
+    description: 'Image URLs (if already uploaded/seeded)',
+    example: ['https://example.com/img1.jpg'],
+  })
   @IsArray()
   @IsString({ each: true })
   images: string[];

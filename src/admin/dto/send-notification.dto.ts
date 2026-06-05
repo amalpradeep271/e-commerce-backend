@@ -2,7 +2,11 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendNotificationDto {
-  @ApiProperty({ description: 'Target user ID (optional, omit for broadcast)', example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', required: false })
+  @ApiProperty({
+    description: 'Target user ID (optional, omit for broadcast)',
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   userId?: string;
@@ -12,12 +16,19 @@ export class SendNotificationDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: 'Notification body content', example: 'Get 20% off all hoodies using coupon HOODIE20' })
+  @ApiProperty({
+    description: 'Notification body content',
+    example: 'Get 20% off all hoodies using coupon HOODIE20',
+  })
   @IsString()
   @IsNotEmpty()
   body: string;
 
-  @ApiProperty({ description: 'Notification type', enum: ['order', 'promo', 'system'], example: 'promo' })
+  @ApiProperty({
+    description: 'Notification type',
+    enum: ['order', 'promo', 'system'],
+    example: 'promo',
+  })
   @IsEnum(['order', 'promo', 'system'])
   @IsNotEmpty()
   type: string;

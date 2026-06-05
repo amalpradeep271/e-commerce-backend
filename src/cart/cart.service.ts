@@ -9,7 +9,8 @@ export class CartService {
   constructor(private readonly drizzleService: DrizzleService) {}
 
   async addToCart(userId: string, addToCartDto: AddToCartDto) {
-    const { productId, productColor, productSize, prodctQuantity } = addToCartDto;
+    const { productId, productColor, productSize, prodctQuantity } =
+      addToCartDto;
 
     // 1. Find internal UUID of product
     const [product] = await this.drizzleService.db
@@ -70,9 +71,11 @@ export class CartService {
 
     // 3. Map to match expected client model fields
     return items.map((item) => {
-      const prodImages = images.filter((img) => img.productId === item.product.id);
+      const prodImages = images.filter(
+        (img) => img.productId === item.product.id,
+      );
       const productImage = prodImages.length > 0 ? prodImages[0].url : '';
-      
+
       const basePrice = Number(item.product.price);
       const discountPrice = Number(item.product.discountPrice);
       const qty = item.quantity;
@@ -97,7 +100,9 @@ export class CartService {
   async removeCartProduct(userId: string, cartItemId: string) {
     const result = await this.drizzleService.db
       .delete(cartItemTable)
-      .where(and(eq(cartItemTable.userId, userId), eq(cartItemTable.id, cartItemId)))
+      .where(
+        and(eq(cartItemTable.userId, userId), eq(cartItemTable.id, cartItemId)),
+      )
       .returning({ id: cartItemTable.id })
       .execute();
 
@@ -122,7 +127,12 @@ export class CartService {
     const [cartItem] = await this.drizzleService.db
       .select({ id: cartItemTable.id })
       .from(cartItemTable)
-      .where(and(eq(cartItemTable.userId, userId), eq(cartItemTable.productId, product.id)))
+      .where(
+        and(
+          eq(cartItemTable.userId, userId),
+          eq(cartItemTable.productId, product.id),
+        ),
+      )
       .execute();
 
     return !!cartItem;

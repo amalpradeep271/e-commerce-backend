@@ -1,5 +1,18 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -15,7 +28,10 @@ export class CartController {
   @Post()
   @ApiOperation({ summary: 'Add a product to cart' })
   @ApiResponse({ status: 201, description: 'Added to cart successfully' })
-  async addToCart(@CurrentUser() user: any, @Body() addToCartDto: AddToCartDto) {
+  async addToCart(
+    @CurrentUser() user: any,
+    @Body() addToCartDto: AddToCartDto,
+  ) {
     return this.cartService.addToCart(user.id, addToCartDto);
   }
 
@@ -29,14 +45,23 @@ export class CartController {
   @Delete(':id')
   @ApiOperation({ summary: 'Remove a product from cart by cart item ID' })
   @ApiResponse({ status: 200, description: 'Product removed successfully' })
-  async removeCartProduct(@CurrentUser() user: any, @Param('id') cartItemId: string) {
+  async removeCartProduct(
+    @CurrentUser() user: any,
+    @Param('id') cartItemId: string,
+  ) {
     return this.cartService.removeCartProduct(user.id, cartItemId);
   }
 
   @Get('check/:productId')
   @ApiOperation({ summary: 'Check if a product is in current user cart' })
-  @ApiResponse({ status: 200, description: 'Returns boolean cart presence status' })
-  async isProductInCart(@CurrentUser() user: any, @Param('productId') productId: string) {
+  @ApiResponse({
+    status: 200,
+    description: 'Returns boolean cart presence status',
+  })
+  async isProductInCart(
+    @CurrentUser() user: any,
+    @Param('productId') productId: string,
+  ) {
     return this.cartService.isProductInCart(user.id, productId);
   }
 }

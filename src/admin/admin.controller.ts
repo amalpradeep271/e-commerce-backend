@@ -13,7 +13,14 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminService } from './admin.service';
 import { AdminAuthGuard } from '../auth/admin-auth.guard';
@@ -68,7 +75,10 @@ export class AdminController {
   @Get('products')
   @ApiOperation({ summary: 'List all products' })
   @ApiResponse({ status: 200, description: 'Returns products list' })
-  async getProducts(@Query('search') search?: string, @Query('categoryId') categoryId?: string) {
+  async getProducts(
+    @Query('search') search?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
     return this.adminService.getProducts(search, categoryId);
   }
 
@@ -89,7 +99,10 @@ export class AdminController {
   @Put('products/:id')
   @ApiOperation({ summary: 'Update a product' })
   @ApiResponse({ status: 200, description: 'Returns updated status' })
-  async updateProduct(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
     return this.adminService.updateProduct(id, updateProductDto);
   }
 
@@ -116,7 +129,10 @@ export class AdminController {
     },
   })
   @ApiResponse({ status: 201, description: 'Returns uploaded image URL' })
-  async uploadProductImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+  async uploadProductImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
@@ -144,7 +160,10 @@ export class AdminController {
   @Put('categories/:id')
   @ApiOperation({ summary: 'Update a category' })
   @ApiResponse({ status: 200, description: 'Returns updated category' })
-  async updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+  async updateCategory(
+    @Param('id') id: string,
+    @Body() dto: UpdateCategoryDto,
+  ) {
     return this.adminService.updateCategory(id, dto);
   }
 
@@ -200,15 +219,24 @@ export class AdminController {
 
   @Get('orders/:id')
   @ApiOperation({ summary: 'Get order detail' })
-  @ApiResponse({ status: 200, description: 'Returns detailed order information' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns detailed order information',
+  })
   async getOrder(@Param('id') id: string) {
     return this.adminService.getOrder(id);
   }
 
   @Patch('orders/:id/status')
   @ApiOperation({ summary: 'Update order status' })
-  @ApiResponse({ status: 200, description: 'Returns created status history entry' })
-  async updateOrderStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+  @ApiResponse({
+    status: 200,
+    description: 'Returns created status history entry',
+  })
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
     return this.adminService.updateOrderStatus(id, dto);
   }
 
@@ -226,7 +254,10 @@ export class AdminController {
   @Patch('users/:id')
   @ApiOperation({ summary: 'Update user role' })
   @ApiResponse({ status: 200, description: 'Returns updated user details' })
-  async updateUserRole(@Param('id') id: string, @Body() dto: UpdateUserRoleDto) {
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserRoleDto,
+  ) {
     return this.adminService.updateUserRole(id, dto);
   }
 
@@ -318,7 +349,9 @@ export class AdminController {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
-    const uploadResult = await this.adminService.uploadGenericImage(file.buffer);
+    const uploadResult = await this.adminService.uploadGenericImage(
+      file.buffer,
+    );
     return { url: uploadResult.secure_url };
   }
 }

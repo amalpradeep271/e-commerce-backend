@@ -14,20 +14,29 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     const connectionString = this.configService.get<string>('DATABASE_URL');
     if (!connectionString) {
-      throw new Error('DATABASE_URL is not defined in the environment variables');
+      throw new Error(
+        'DATABASE_URL is not defined in the environment variables',
+      );
     }
 
     if (this.configService.get<string>('NODE_ENV') === 'development') {
-      console.log('DrizzleService initializing pool with URL:', connectionString.substring(0, 50) + '...');
+      console.log(
+        'DrizzleService initializing pool with URL:',
+        connectionString.substring(0, 50) + '...',
+      );
     } else {
       console.log('DrizzleService initializing pool...');
     }
 
+    const isProd =
+      this.configService.get<string>('NODE_ENV') !== 'development' ||
+      connectionString.includes('neon.tech');
+
     this.pool = new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: isProd ? { rejectUnauthorized: false } : false,
       connectionTimeoutMillis: 30000, // 30 seconds connection timeout for Neon cold-starts
-      max: 3,
+      max: isProd ? 5 : 3,
     });
 
     this.pool.on('error', (err) => {
@@ -37,13 +46,16 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
     this.db = drizzle({ client: this.pool, schema });
 
     // Keep-alive query every 4 minutes to prevent Neon serverless compute from auto-suspending
-    setInterval(async () => {
-      try {
-        await this.pool.query('SELECT 1');
-      } catch (err: any) {
-        console.error('Database keep-alive ping failed:', err.message);
-      }
-    }, 4 * 60 * 1000);
+    setInterval(
+      async () => {
+        try {
+          await this.pool.query('SELECT 1');
+        } catch (err: any) {
+          console.error('Database keep-alive ping failed:', err.message);
+        }
+      },
+      4 * 60 * 1000,
+    );
   }
 
   async onModuleDestroy() {

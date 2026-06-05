@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import { couponTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -30,7 +34,9 @@ export class CouponsService {
     }
 
     if (coupon.maxUses !== null && coupon.currentUses >= coupon.maxUses) {
-      throw new BadRequestException('This coupon has reached its maximum usage limit');
+      throw new BadRequestException(
+        'This coupon has reached its maximum usage limit',
+      );
     }
 
     if (Number(orderAmount) < Number(coupon.minOrderAmount)) {
@@ -41,7 +47,8 @@ export class CouponsService {
 
     let discountAmount = 0;
     if (coupon.discountType === 'percentage') {
-      discountAmount = (Number(orderAmount) * Number(coupon.discountValue)) / 100;
+      discountAmount =
+        (Number(orderAmount) * Number(coupon.discountValue)) / 100;
     } else {
       discountAmount = Number(coupon.discountValue);
     }

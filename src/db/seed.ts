@@ -87,23 +87,28 @@ async function main() {
     const categoriesData = [
       {
         title: 'Hoodies',
-        image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=300&auto=format&fit=crop',
+        image:
+          'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=300&auto=format&fit=crop',
       },
       {
         title: 'Shorts',
-        image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?q=80&w=300&auto=format&fit=crop',
+        image:
+          'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?q=80&w=300&auto=format&fit=crop',
       },
       {
         title: 'Shoes',
-        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&auto=format&fit=crop',
+        image:
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300&auto=format&fit=crop',
       },
       {
         title: 'Bags',
-        image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?q=80&w=300&auto=format&fit=crop',
+        image:
+          'https://images.unsplash.com/photo-1547949003-9792a18a2601?q=80&w=300&auto=format&fit=crop',
       },
       {
         title: 'Accessories',
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300&auto=format&fit=crop',
+        image:
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300&auto=format&fit=crop',
       },
     ];
 
@@ -118,11 +123,15 @@ async function main() {
     }
     console.log(`Inserted ${insertedCategories.length} categories.`);
 
-    const hoodieCategory = insertedCategories.find((c) => c.title === 'Hoodies');
+    const hoodieCategory = insertedCategories.find(
+      (c) => c.title === 'Hoodies',
+    );
     const shoesCategory = insertedCategories.find((c) => c.title === 'Shoes');
     const shortsCategory = insertedCategories.find((c) => c.title === 'Shorts');
     const bagsCategory = insertedCategories.find((c) => c.title === 'Bags');
-    const accessoriesCategory = insertedCategories.find((c) => c.title === 'Accessories');
+    const accessoriesCategory = insertedCategories.find(
+      (c) => c.title === 'Accessories',
+    );
 
     // 3. Seed Products
     console.log('Inserting products...');
@@ -131,9 +140,11 @@ async function main() {
         productId: 'prod_01',
         categoryId: hoodieCategory?.id,
         title: 'Premium Cotton Hoodie',
-        description: 'Stay warm and stylish with our premium cotton blend hoodie. Features a double-lined hood and a spacious kangaroo pocket.',
+        description:
+          'Stay warm and stylish with our premium cotton blend hoodie. Features a double-lined hood and a spacious kangaroo pocket.',
         dimensions: 'Regular Fit',
-        manufactureInformation: 'Made with 80% Organic Cotton and 20% Recycled Polyester in Vietnam.',
+        manufactureInformation:
+          'Made with 80% Organic Cotton and 20% Recycled Polyester in Vietnam.',
         price: '59.99',
         discountPrice: '45.00',
         gender: 1, // Unisex/Male
@@ -154,7 +165,8 @@ async function main() {
         productId: 'prod_02',
         categoryId: shoesCategory?.id,
         title: 'Retro Running Sneakers',
-        description: 'Classic lightweight runner sneakers featuring synthetic suede overlays, breathable mesh base, and durable rubber waffle outsole.',
+        description:
+          'Classic lightweight runner sneakers featuring synthetic suede overlays, breathable mesh base, and durable rubber waffle outsole.',
         dimensions: 'True to Size',
         manufactureInformation: 'Crafted with premium materials in Indonesia.',
         price: '110.00',
@@ -177,7 +189,8 @@ async function main() {
         productId: 'prod_03',
         categoryId: shortsCategory?.id,
         title: 'Active Tech Shorts',
-        description: 'Designed for high performance. Moisture-wicking quick-dry fabric with built-in compression liner and zippered pocket.',
+        description:
+          'Designed for high performance. Moisture-wicking quick-dry fabric with built-in compression liner and zippered pocket.',
         dimensions: 'Athletic Fit',
         manufactureInformation: 'Engineered in Taiwan.',
         price: '34.99',
@@ -198,7 +211,8 @@ async function main() {
         productId: 'prod_04',
         categoryId: hoodieCategory?.id,
         title: 'Oversized Fleece Pullover',
-        description: 'Relaxed oversized fit pullover hoodie made from ultra-soft heavyweight fleece. Dropped shoulders and ribbed trims.',
+        description:
+          'Relaxed oversized fit pullover hoodie made from ultra-soft heavyweight fleece. Dropped shoulders and ribbed trims.',
         dimensions: 'Loose Fit',
         manufactureInformation: 'Manufactured in Turkey.',
         price: '79.99',
@@ -219,9 +233,11 @@ async function main() {
         productId: 'prod_05',
         categoryId: hoodieCategory?.id,
         title: 'Zip-up Athletic Hoodie',
-        description: 'Performance zip-up hoodie with sweat-wicking materials and reflective design elements for night runners.',
+        description:
+          'Performance zip-up hoodie with sweat-wicking materials and reflective design elements for night runners.',
         dimensions: 'Athletic Slim Fit',
-        manufactureInformation: 'Made with 100% recycled polyester in Thailand.',
+        manufactureInformation:
+          'Made with 100% recycled polyester in Thailand.',
         price: '69.99',
         discountPrice: '0.00',
         gender: 1,
@@ -240,7 +256,8 @@ async function main() {
         productId: 'prod_06',
         categoryId: hoodieCategory?.id,
         title: 'Vintage Knit Hoodie',
-        description: 'Cozy waffle knit texture vintage style hoodie. Super soft feel with a relaxed hem.',
+        description:
+          'Cozy waffle knit texture vintage style hoodie. Super soft feel with a relaxed hem.',
         dimensions: 'Relaxed Fit',
         manufactureInformation: 'Knitted and crafted in India.',
         price: '49.99',
@@ -261,9 +278,11 @@ async function main() {
         productId: 'prod_07',
         categoryId: shortsCategory?.id,
         title: 'Casual Linen Shorts',
-        description: 'Lightweight and breathable linen shorts, perfect for hot summer days. Features an elastic waistband with drawcord.',
+        description:
+          'Lightweight and breathable linen shorts, perfect for hot summer days. Features an elastic waistband with drawcord.',
         dimensions: 'Regular Fit',
-        manufactureInformation: '100% pure linen sourced and assembled in Italy.',
+        manufactureInformation:
+          '100% pure linen sourced and assembled in Italy.',
         price: '45.00',
         discountPrice: '35.00',
         gender: 1,
@@ -282,7 +301,8 @@ async function main() {
         productId: 'prod_08',
         categoryId: shortsCategory?.id,
         title: 'Denim Raw Hem Shorts',
-        description: 'Classic 5-pocket denim shorts featuring a vintage wash and raw fringed hems. Durable denim fabric.',
+        description:
+          'Classic 5-pocket denim shorts featuring a vintage wash and raw fringed hems. Durable denim fabric.',
         dimensions: 'Regular Fit',
         manufactureInformation: 'Stitched in Mexico.',
         price: '49.99',
@@ -303,7 +323,8 @@ async function main() {
         productId: 'prod_09',
         categoryId: shoesCategory?.id,
         title: 'Classic White Leather Sneakers',
-        description: 'Minimalist daily leather sneakers that go with any outfit. Soft calfskin leather lining with supportive cupsole.',
+        description:
+          'Minimalist daily leather sneakers that go with any outfit. Soft calfskin leather lining with supportive cupsole.',
         dimensions: 'True to Size',
         manufactureInformation: 'Handcrafted in Portugal.',
         price: '125.00',
@@ -324,7 +345,8 @@ async function main() {
         productId: 'prod_10',
         categoryId: shoesCategory?.id,
         title: 'All-Weather Trail Boots',
-        description: 'Waterproof suede trail boots with Vibram outsoles for maximum traction. Engineered for rugged environments.',
+        description:
+          'Waterproof suede trail boots with Vibram outsoles for maximum traction. Engineered for rugged environments.',
         dimensions: 'Slightly Wide Fit',
         manufactureInformation: 'Assembled in Vietnam.',
         price: '160.00',
@@ -345,7 +367,8 @@ async function main() {
         productId: 'prod_11',
         categoryId: bagsCategory?.id,
         title: 'Waterproof Rolltop Backpack',
-        description: 'Spacious and fully waterproof rolltop bag, perfect for commuters. Features an internal padded 16-inch laptop sleeve.',
+        description:
+          'Spacious and fully waterproof rolltop bag, perfect for commuters. Features an internal padded 16-inch laptop sleeve.',
         dimensions: '25L Capacity',
         manufactureInformation: 'Made with recycled TPU coating in China.',
         price: '85.00',
@@ -366,7 +389,8 @@ async function main() {
         productId: 'prod_12',
         categoryId: bagsCategory?.id,
         title: 'Minimalist Leather Tote',
-        description: 'Crafted from premium full-grain pebbled leather. Elegant and clean shoulder bag design with solid brass hardware.',
+        description:
+          'Crafted from premium full-grain pebbled leather. Elegant and clean shoulder bag design with solid brass hardware.',
         dimensions: 'Medium Tote',
         manufactureInformation: 'Crafted in Spain.',
         price: '140.00',
@@ -387,7 +411,8 @@ async function main() {
         productId: 'prod_13',
         categoryId: accessoriesCategory?.id,
         title: 'Polarized Classic Sunglasses',
-        description: 'Acetate frame classic square sunglasses with UV400 polarized lenses. Durable 5-barrel hinges.',
+        description:
+          'Acetate frame classic square sunglasses with UV400 polarized lenses. Durable 5-barrel hinges.',
         dimensions: 'Standard Fit',
         manufactureInformation: 'Designed in Japan.',
         price: '39.99',
@@ -408,7 +433,8 @@ async function main() {
         productId: 'prod_14',
         categoryId: accessoriesCategory?.id,
         title: 'Sport Silicone Smartwatch',
-        description: 'Fitness smartwatch with heart rate monitoring, sleep tracking, and a durable sweatproof silicone band.',
+        description:
+          'Fitness smartwatch with heart rate monitoring, sleep tracking, and a durable sweatproof silicone band.',
         dimensions: '44mm Case',
         manufactureInformation: 'Assembled in South Korea.',
         price: '89.99',
@@ -489,11 +515,13 @@ async function main() {
       .values([
         {
           discountAmount: '50% OFF',
-          image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop',
+          image:
+            'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop',
         },
         {
           discountAmount: '30% OFF',
-          image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
+          image:
+            'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
         },
       ])
       .execute();

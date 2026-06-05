@@ -1,5 +1,10 @@
 import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -15,7 +20,10 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Register a new checkout order' })
   @ApiResponse({ status: 201, description: 'Order registered successfully' })
-  async createOrder(@CurrentUser() user: any, @Body() createOrderDto: CreateOrderDto) {
+  async createOrder(
+    @CurrentUser() user: any,
+    @Body() createOrderDto: CreateOrderDto,
+  ) {
     return this.ordersService.createOrder(user.id, createOrderDto);
   }
 

@@ -1,5 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { AddressesService } from './addresses.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
@@ -23,7 +37,10 @@ export class AddressesController {
   @Post()
   @ApiOperation({ summary: 'Add a new address' })
   @ApiResponse({ status: 201, description: 'Returns created address' })
-  async createAddress(@CurrentUser() user: any, @Body() createAddressDto: CreateAddressDto) {
+  async createAddress(
+    @CurrentUser() user: any,
+    @Body() createAddressDto: CreateAddressDto,
+  ) {
     return this.addressesService.createAddress(user.id, createAddressDto);
   }
 

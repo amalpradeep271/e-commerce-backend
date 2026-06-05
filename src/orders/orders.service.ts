@@ -1,6 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
-import { orderTable, orderItemTable, orderStatusTable, cartItemTable, productTable } from '../db/schema';
+import {
+  orderTable,
+  orderItemTable,
+  orderStatusTable,
+  cartItemTable,
+  productTable,
+} from '../db/schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { eq, inArray, and } from 'drizzle-orm';
 
@@ -9,7 +15,14 @@ export class OrdersService {
   constructor(private readonly drizzleService: DrizzleService) {}
 
   async createOrder(userId: string, createOrderDto: CreateOrderDto) {
-    const { products, shippingAddress, itemCount, totalPrice, code, orderStatus } = createOrderDto;
+    const {
+      products,
+      shippingAddress,
+      itemCount,
+      totalPrice,
+      code,
+      orderStatus,
+    } = createOrderDto;
 
     // Use a transaction so that we don't end up with partial orders or failing to clear cart
     await this.drizzleService.db.transaction(async (tx) => {
@@ -123,7 +136,7 @@ export class OrdersService {
         .map((item) => {
           const basePrice = Number(item.orderItem.price);
           const qty = item.orderItem.quantity;
-          
+
           return {
             id: item.orderItem.id,
             productId: item.productId, // client side string productId
@@ -160,7 +173,10 @@ export class OrdersService {
   }
 
   async getOrderTracking(userId: string, codeOrId: string) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(codeOrId);
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        codeOrId,
+      );
 
     const [order] = await this.drizzleService.db
       .select()
@@ -168,8 +184,8 @@ export class OrdersService {
       .where(
         and(
           eq(orderTable.userId, userId),
-          isUuid ? eq(orderTable.id, codeOrId) : eq(orderTable.code, codeOrId)
-        )
+          isUuid ? eq(orderTable.id, codeOrId) : eq(orderTable.code, codeOrId),
+        ),
       )
       .execute();
 
@@ -190,4 +206,3 @@ export class OrdersService {
     }));
   }
 }
-

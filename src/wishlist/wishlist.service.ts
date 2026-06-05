@@ -47,7 +47,12 @@ export class WishlistService {
     const [existingWishlistItem] = await this.drizzleService.db
       .select({ id: wishlistTable.id })
       .from(wishlistTable)
-      .where(and(eq(wishlistTable.userId, userId), eq(wishlistTable.productId, product.id)))
+      .where(
+        and(
+          eq(wishlistTable.userId, userId),
+          eq(wishlistTable.productId, product.id),
+        ),
+      )
       .execute();
 
     if (existingWishlistItem) {

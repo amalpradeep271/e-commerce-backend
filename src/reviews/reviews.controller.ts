@@ -1,5 +1,10 @@
 import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { AddReviewDto } from './dto/add-review.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -15,7 +20,10 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Add a new product review' })
   @ApiResponse({ status: 201, description: 'Review Added successfully' })
-  async addReview(@CurrentUser() user: any, @Body() addReviewDto: AddReviewDto) {
+  async addReview(
+    @CurrentUser() user: any,
+    @Body() addReviewDto: AddReviewDto,
+  ) {
     return this.reviewsService.addReview(user.id, addReviewDto);
   }
 

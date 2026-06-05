@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DrizzleService } from '../db/db.service';
 import { ageTable, userTable } from '../db/schema';
@@ -119,10 +123,7 @@ export class AuthService {
   }
 
   async getAges() {
-    const ages = await this.drizzleService.db
-      .select()
-      .from(ageTable)
-      .execute();
+    const ages = await this.drizzleService.db.select().from(ageTable).execute();
 
     return ages.map((age) => ({
       id: age.id,

@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AddReviewDto {
@@ -18,22 +25,37 @@ export class AddReviewDto {
   @IsOptional()
   reviewTitle: string;
 
-  @ApiProperty({ example: 'Really loved this product. High quality.', description: 'Review detailed content' })
+  @ApiProperty({
+    example: 'Really loved this product. High quality.',
+    description: 'Review detailed content',
+  })
   @IsString()
   @IsOptional()
   reviewContent: string;
 
-  @ApiProperty({ example: 'John Doe', required: false, description: 'User full name (ignored by backend, read from auth)' })
+  @ApiProperty({
+    example: 'John Doe',
+    required: false,
+    description: 'User full name (ignored by backend, read from auth)',
+  })
   @IsString()
   @IsOptional()
   creatorName?: string;
 
-  @ApiProperty({ example: 'http://img.url', required: false, description: 'User avatar (ignored by backend, read from auth)' })
+  @ApiProperty({
+    example: 'http://img.url',
+    required: false,
+    description: 'User avatar (ignored by backend, read from auth)',
+  })
   @IsString()
   @IsOptional()
   creatorImage?: string;
 
-  @ApiProperty({ example: '2026-06-02T12:00:00.000Z', required: false, description: 'Created date string' })
+  @ApiProperty({
+    example: '2026-06-02T12:00:00.000Z',
+    required: false,
+    description: 'Created date string',
+  })
   @IsString()
   @IsOptional()
   createdDate?: string;

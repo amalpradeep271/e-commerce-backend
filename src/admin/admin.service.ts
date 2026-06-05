@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import {
   userTable,
@@ -119,7 +123,10 @@ export class AdminService {
     for (const order of orders) {
       const dateString = order.createdDate.toISOString().split('T')[0];
       if (revenueMap.has(dateString)) {
-        revenueMap.set(dateString, revenueMap.get(dateString)! + Number(order.totalPrice));
+        revenueMap.set(
+          dateString,
+          revenueMap.get(dateString)! + Number(order.totalPrice),
+        );
       }
     }
 
@@ -147,7 +154,9 @@ export class AdminService {
       query = query.where(and(...conditions)) as any;
     }
 
-    const products = await query.orderBy(desc(productTable.createdAt)).execute();
+    const products = await query
+      .orderBy(desc(productTable.createdAt))
+      .execute();
     if (products.length === 0) return [];
 
     const productIds = products.map((p) => p.id);
@@ -206,7 +215,9 @@ export class AdminService {
       .execute();
 
     if (existingProduct) {
-      throw new BadRequestException(`Product with ID '${dto.productId}' already exists`);
+      throw new BadRequestException(
+        `Product with ID '${dto.productId}' already exists`,
+      );
     }
 
     return this.drizzleService.db.transaction(async (tx) => {
@@ -332,7 +343,10 @@ export class AdminService {
           dimensions: dto.dimensions,
           manufactureInformation: dto.manufactureInformation,
           price: dto.price !== undefined ? dto.price.toString() : undefined,
-          discountPrice: dto.discountPrice !== undefined ? dto.discountPrice.toString() : undefined,
+          discountPrice:
+            dto.discountPrice !== undefined
+              ? dto.discountPrice.toString()
+              : undefined,
           gender: dto.gender,
           updatedAt: new Date(),
         })
@@ -341,7 +355,10 @@ export class AdminService {
 
       // Update Colors if provided
       if (dto.colors) {
-        await tx.delete(productColorTable).where(eq(productColorTable.productId, id)).execute();
+        await tx
+          .delete(productColorTable)
+          .where(eq(productColorTable.productId, id))
+          .execute();
         for (const col of dto.colors) {
           await tx
             .insert(productColorTable)
@@ -356,7 +373,10 @@ export class AdminService {
 
       // Update Sizes if provided
       if (dto.sizes) {
-        await tx.delete(productSizeTable).where(eq(productSizeTable.productId, id)).execute();
+        await tx
+          .delete(productSizeTable)
+          .where(eq(productSizeTable.productId, id))
+          .execute();
         for (const sz of dto.sizes) {
           await tx
             .insert(productSizeTable)
@@ -370,7 +390,10 @@ export class AdminService {
 
       // Update Images if provided
       if (dto.images) {
-        await tx.delete(productImageTable).where(eq(productImageTable.productId, id)).execute();
+        await tx
+          .delete(productImageTable)
+          .where(eq(productImageTable.productId, id))
+          .execute();
         for (const imgUrl of dto.images) {
           await tx
             .insert(productImageTable)
@@ -397,7 +420,10 @@ export class AdminService {
       throw new NotFoundException('Product not found');
     }
 
-    await this.drizzleService.db.delete(productTable).where(eq(productTable.id, id)).execute();
+    await this.drizzleService.db
+      .delete(productTable)
+      .where(eq(productTable.id, id))
+      .execute();
     return { message: 'Product deleted successfully' };
   }
 
@@ -412,7 +438,10 @@ export class AdminService {
       throw new NotFoundException('Product not found');
     }
 
-    const uploadResponse = await this.cloudinaryService.uploadFile(fileBuffer, 'products');
+    const uploadResponse = await this.cloudinaryService.uploadFile(
+      fileBuffer,
+      'products',
+    );
 
     const [newImg] = await this.drizzleService.db
       .insert(productImageTable)
@@ -431,7 +460,11 @@ export class AdminService {
   // ==========================================
 
   async getCategories() {
-    return this.drizzleService.db.select().from(categoryTable).orderBy(desc(categoryTable.createdAt)).execute();
+    return this.drizzleService.db
+      .select()
+      .from(categoryTable)
+      .orderBy(desc(categoryTable.createdAt))
+      .execute();
   }
 
   async createCategory(dto: CreateCategoryDto) {
@@ -479,7 +512,10 @@ export class AdminService {
       throw new NotFoundException('Category not found');
     }
 
-    await this.drizzleService.db.delete(categoryTable).where(eq(categoryTable.id, id)).execute();
+    await this.drizzleService.db
+      .delete(categoryTable)
+      .where(eq(categoryTable.id, id))
+      .execute();
     return { message: 'Category deleted successfully' };
   }
 
@@ -488,7 +524,11 @@ export class AdminService {
   // ==========================================
 
   async getBanners() {
-    return this.drizzleService.db.select().from(bannerTable).orderBy(desc(bannerTable.createdAt)).execute();
+    return this.drizzleService.db
+      .select()
+      .from(bannerTable)
+      .orderBy(desc(bannerTable.createdAt))
+      .execute();
   }
 
   async createBanner(dto: CreateBannerDto) {
@@ -536,7 +576,10 @@ export class AdminService {
       throw new NotFoundException('Banner not found');
     }
 
-    await this.drizzleService.db.delete(bannerTable).where(eq(bannerTable.id, id)).execute();
+    await this.drizzleService.db
+      .delete(bannerTable)
+      .where(eq(bannerTable.id, id))
+      .execute();
     return { message: 'Banner deleted successfully' };
   }
 
@@ -545,7 +588,7 @@ export class AdminService {
   // ==========================================
 
   async getOrders(status?: string) {
-    let query = this.drizzleService.db
+    const query = this.drizzleService.db
       .select({
         id: orderTable.id,
         code: orderTable.code,
@@ -577,7 +620,10 @@ export class AdminService {
     const mapped = orders.map((order) => {
       const oStatuses = statuses.filter((s) => s.orderId === order.id);
       // Sort statuses by statusDate or ID to find latest status
-      const latestStatus = oStatuses.length > 0 ? oStatuses[oStatuses.length - 1].title : 'Pending';
+      const latestStatus =
+        oStatuses.length > 0
+          ? oStatuses[oStatuses.length - 1].title
+          : 'Pending';
 
       return {
         ...order,
@@ -588,7 +634,9 @@ export class AdminService {
     });
 
     if (status) {
-      return mapped.filter((o) => o.status.toLowerCase() === status.toLowerCase());
+      return mapped.filter(
+        (o) => o.status.toLowerCase() === status.toLowerCase(),
+      );
     }
 
     return mapped;
@@ -765,7 +813,10 @@ export class AdminService {
       throw new NotFoundException('Review not found');
     }
 
-    await this.drizzleService.db.delete(reviewTable).where(eq(reviewTable.id, id)).execute();
+    await this.drizzleService.db
+      .delete(reviewTable)
+      .where(eq(reviewTable.id, id))
+      .execute();
     return { message: 'Review deleted successfully' };
   }
 
@@ -804,7 +855,10 @@ export class AdminService {
         code: dto.code,
         discountType: dto.discountType,
         discountValue: dto.discountValue.toString(),
-        minOrderAmount: dto.minOrderAmount !== undefined ? dto.minOrderAmount.toString() : '0.00',
+        minOrderAmount:
+          dto.minOrderAmount !== undefined
+            ? dto.minOrderAmount.toString()
+            : '0.00',
         maxUses: dto.maxUses,
         expiresAt: new Date(dto.expiresAt),
         isActive: dto.isActive ?? true,
@@ -827,9 +881,12 @@ export class AdminService {
     }
 
     const updateFields: any = { ...dto };
-    if (dto.discountValue !== undefined) updateFields.discountValue = dto.discountValue.toString();
-    if (dto.minOrderAmount !== undefined) updateFields.minOrderAmount = dto.minOrderAmount.toString();
-    if (dto.expiresAt !== undefined) updateFields.expiresAt = new Date(dto.expiresAt);
+    if (dto.discountValue !== undefined)
+      updateFields.discountValue = dto.discountValue.toString();
+    if (dto.minOrderAmount !== undefined)
+      updateFields.minOrderAmount = dto.minOrderAmount.toString();
+    if (dto.expiresAt !== undefined)
+      updateFields.expiresAt = new Date(dto.expiresAt);
 
     const [updated] = await this.drizzleService.db
       .update(couponTable)
@@ -852,7 +909,10 @@ export class AdminService {
       throw new NotFoundException('Coupon not found');
     }
 
-    await this.drizzleService.db.delete(couponTable).where(eq(couponTable.id, id)).execute();
+    await this.drizzleService.db
+      .delete(couponTable)
+      .where(eq(couponTable.id, id))
+      .execute();
     return { message: 'Coupon deleted successfully' };
   }
 

@@ -1,4 +1,11 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -44,12 +51,18 @@ export class OrderedProductDto {
   @IsNotEmpty()
   productImage: string;
 
-  @ApiProperty({ example: '2026-06-02T12:00:00.000Z', description: 'Date created' })
+  @ApiProperty({
+    example: '2026-06-02T12:00:00.000Z',
+    description: 'Date created',
+  })
   @IsString()
   @IsNotEmpty()
   createdDate: string;
 
-  @ApiProperty({ example: 'cart_item_uuid', description: 'Database ID of the corresponding cart item to clear' })
+  @ApiProperty({
+    example: 'cart_item_uuid',
+    description: 'Database ID of the corresponding cart item to clear',
+  })
   @IsString()
   @IsNotEmpty()
   id: string; // Cart item ID
@@ -61,29 +74,44 @@ export class OrderStatusDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: '2026-06-02T12:00:00.000Z', description: 'Date of status update' })
+  @ApiProperty({
+    example: '2026-06-02T12:00:00.000Z',
+    description: 'Date of status update',
+  })
   @IsString()
   @IsNotEmpty()
   createdDate: string;
 
-  @ApiProperty({ example: true, description: 'Whether this stage is completed' })
+  @ApiProperty({
+    example: true,
+    description: 'Whether this stage is completed',
+  })
   @IsBoolean()
   done: boolean;
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ type: [OrderedProductDto], description: 'List of products ordered' })
+  @ApiProperty({
+    type: [OrderedProductDto],
+    description: 'List of products ordered',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderedProductDto)
   products: OrderedProductDto[];
 
-  @ApiProperty({ example: '2026-06-02T12:00:00.000Z', description: 'Order creation date' })
+  @ApiProperty({
+    example: '2026-06-02T12:00:00.000Z',
+    description: 'Order creation date',
+  })
   @IsString()
   @IsNotEmpty()
   createdDate: string;
 
-  @ApiProperty({ example: '123 Main St, Springfield', description: 'Shipping delivery address' })
+  @ApiProperty({
+    example: '123 Main St, Springfield',
+    description: 'Shipping delivery address',
+  })
   @IsString()
   @IsNotEmpty()
   shippingAddress: string;
@@ -101,7 +129,10 @@ export class CreateOrderDto {
   @IsNotEmpty()
   code: string;
 
-  @ApiProperty({ type: [OrderStatusDto], description: 'Order tracking status history' })
+  @ApiProperty({
+    type: [OrderStatusDto],
+    description: 'Order tracking status history',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderStatusDto)

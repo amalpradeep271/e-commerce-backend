@@ -7,7 +7,11 @@ export class UpdateOrderStatusDto {
   @IsNotEmpty()
   status: string;
 
-  @ApiProperty({ description: 'Is this status step done', example: true, required: false })
+  @ApiProperty({
+    description: 'Is this status step done',
+    example: true,
+    required: false,
+  })
   @IsBoolean()
   @IsOptional()
   isDone?: boolean;

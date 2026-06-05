@@ -59,12 +59,18 @@ export class AddressesService {
     });
   }
 
-  async updateAddress(userId: string, addressId: string, updateAddressDto: UpdateAddressDto) {
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updateAddressDto: UpdateAddressDto,
+  ) {
     return this.drizzleService.db.transaction(async (tx) => {
       const [existingAddress] = await tx
         .select()
         .from(addressTable)
-        .where(and(eq(addressTable.id, addressId), eq(addressTable.userId, userId)))
+        .where(
+          and(eq(addressTable.id, addressId), eq(addressTable.userId, userId)),
+        )
         .execute();
 
       if (!existingAddress) {
@@ -75,7 +81,12 @@ export class AddressesService {
         await tx
           .update(addressTable)
           .set({ isDefault: false })
-          .where(and(eq(addressTable.userId, userId), not(eq(addressTable.id, addressId))))
+          .where(
+            and(
+              eq(addressTable.userId, userId),
+              not(eq(addressTable.id, addressId)),
+            ),
+          )
           .execute();
       }
 
@@ -99,7 +110,9 @@ export class AddressesService {
       const [existingAddress] = await tx
         .select()
         .from(addressTable)
-        .where(and(eq(addressTable.id, addressId), eq(addressTable.userId, userId)))
+        .where(
+          and(eq(addressTable.id, addressId), eq(addressTable.userId, userId)),
+        )
         .execute();
 
       if (!existingAddress) {

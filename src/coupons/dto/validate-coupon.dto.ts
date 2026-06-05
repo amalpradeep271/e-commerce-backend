@@ -7,7 +7,10 @@ export class ValidateCouponDto {
   @IsNotEmpty()
   code: string;
 
-  @ApiProperty({ description: 'Order amount to check against minimum purchase requirement', example: 100 })
+  @ApiProperty({
+    description: 'Order amount to check against minimum purchase requirement',
+    example: 100,
+  })
   @IsNumber()
   orderAmount: number;
 }

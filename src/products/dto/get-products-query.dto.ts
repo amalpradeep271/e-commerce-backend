@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsUUID, IsIn, IsInt, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsIn,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GetProductsQueryDto {
@@ -11,7 +18,9 @@ export class GetProductsQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsIn(['top-selling', 'new-in'], { message: 'sort must be top-selling or new-in' })
+  @IsIn(['top-selling', 'new-in'], {
+    message: 'sort must be top-selling or new-in',
+  })
   sort?: string;
 
   @IsOptional()

@@ -1,6 +1,20 @@
-import { Controller, Get, Post, UploadedFile, UseGuards, UseInterceptors, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
@@ -45,7 +59,10 @@ export class UsersController {
       throw new BadRequestException('No image file provided');
     }
 
-    const uploadResponse = await this.cloudinaryService.uploadFile(file.buffer, 'avatars');
+    const uploadResponse = await this.cloudinaryService.uploadFile(
+      file.buffer,
+      'avatars',
+    );
     return this.usersService.updateAvatar(user.id, uploadResponse.secure_url);
   }
 }

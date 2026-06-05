@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
-import { favoriteTable, productTable, productColorTable, productSizeTable, productImageTable, categoryTable } from '../db/schema';
+import {
+  favoriteTable,
+  productTable,
+  productColorTable,
+  productSizeTable,
+  productImageTable,
+  categoryTable,
+} from '../db/schema';
 import { eq, and, gte, like, ilike, inArray, sql } from 'drizzle-orm';
 
 @Injectable()
@@ -39,11 +46,7 @@ export class ProductsService {
           let rgb = [0, 0, 0];
           if (hex.length === 6) {
             const numVal = parseInt(hex, 16);
-            rgb = [
-              (numVal >> 16) & 255,
-              (numVal >> 8) & 255,
-              numVal & 255
-            ];
+            rgb = [(numVal >> 16) & 255, (numVal >> 8) & 255, numVal & 255];
           } else if (hex.length === 3) {
             const r = parseInt(hex[0] + hex[0], 16);
             const g = parseInt(hex[1] + hex[1], 16);
@@ -80,7 +83,13 @@ export class ProductsService {
     });
   }
 
-  async getProducts(params: { categoryId?: string; search?: string; sort?: string; page?: number; limit?: number }) {
+  async getProducts(params: {
+    categoryId?: string;
+    search?: string;
+    sort?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const { categoryId, search, sort, page, limit } = params;
 
     let query = this.drizzleService.db.select().from(productTable);
@@ -101,7 +110,9 @@ export class ProductsService {
       conditions.push(gte(productTable.salesNumber, 22));
     } else if (sort === 'new-in') {
       // Products created after July 25, 2024 (as defined in Flutter client)
-      conditions.push(gte(productTable.createdDate, new Date('2024-07-25T00:00:00.000Z')));
+      conditions.push(
+        gte(productTable.createdDate, new Date('2024-07-25T00:00:00.000Z')),
+      );
     }
 
     if (conditions.length > 0) {
@@ -133,7 +144,12 @@ export class ProductsService {
     const [fav] = await this.drizzleService.db
       .select({ id: favoriteTable.id })
       .from(favoriteTable)
-      .where(and(eq(favoriteTable.userId, userId), eq(favoriteTable.productId, product.id)))
+      .where(
+        and(
+          eq(favoriteTable.userId, userId),
+          eq(favoriteTable.productId, product.id),
+        ),
+      )
       .execute();
 
     return !!fav;
@@ -153,7 +169,12 @@ export class ProductsService {
     const [existingFav] = await this.drizzleService.db
       .select({ id: favoriteTable.id })
       .from(favoriteTable)
-      .where(and(eq(favoriteTable.userId, userId), eq(favoriteTable.productId, product.id)))
+      .where(
+        and(
+          eq(favoriteTable.userId, userId),
+          eq(favoriteTable.productId, product.id),
+        ),
+      )
       .execute();
 
     if (existingFav) {
@@ -201,4 +222,3 @@ export class ProductsService {
     return this.populateProductsRelations(dbProducts);
   }
 }
-
