@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies and build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml .npmrc ./
@@ -8,7 +8,7 @@ COPY . .
 RUN pnpm build
 
 # Stage 2: Production runtime
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 RUN corepack enable
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
