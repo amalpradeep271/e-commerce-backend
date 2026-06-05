@@ -1,6 +1,7 @@
 # Stage 1: Install dependencies and build
 FROM node:20-slim AS builder
-RUN corepack enable
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
@@ -9,7 +10,6 @@ RUN pnpm build
 
 # Stage 2: Production runtime
 FROM node:20-slim AS runner
-RUN corepack enable
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
