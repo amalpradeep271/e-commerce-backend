@@ -14,9 +14,29 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const isProd = configService.get<string>('NODE_ENV') === 'production';
   app.enableCors({
-    origin: isProd
-      ? configService.get<string>('CORS_ORIGIN')?.split(',') || []
-      : '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = configService.get<string>('CORS_ORIGIN')?.split(',') || [];
+
+      // If '*' is configured in CORS_ORIGIN, allow everything
+      if (allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+
+      const isAllowed =
+        !isProd ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin);
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   });
 
