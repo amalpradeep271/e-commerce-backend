@@ -453,6 +453,11 @@ async function main() {
       },
     ];
 
+    // Query seeded users to attach to reviews
+    const users = await db.select().from(schema.userTable).execute();
+    const normalUser = users.find((u) => u.email === 'user@ecommerce.com');
+    const adminUser = users.find((u) => u.email === 'admin@ecommerce.com');
+
     for (const prod of productsData) {
       const [insertedProduct] = await db
         .insert(schema.productTable)
@@ -505,8 +510,35 @@ async function main() {
           })
           .execute();
       }
+
+      // Seed reviews for this product
+      if (normalUser && adminUser) {
+        const charCodeSum = prod.productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const rating1 = (4.0 + (charCodeSum % 5) * 0.25).toFixed(2); // e.g. 4.00, 4.25, 4.50, 4.75, 5.00
+        const rating2 = (4.0 + ((charCodeSum + 1) % 5) * 0.25).toFixed(2);
+
+        await db
+          .insert(schema.reviewTable)
+          .values([
+            {
+              userId: normalUser.id,
+              productId: insertedProduct.id,
+              title: 'Great product!',
+              content: 'Very satisfied with the quality of this item. Highly recommended!',
+              rating: rating1,
+            },
+            {
+              userId: adminUser.id,
+              productId: insertedProduct.id,
+              title: 'Nice choice',
+              content: 'Matches the description perfectly. Fits nicely.',
+              rating: rating2,
+            },
+          ])
+          .execute();
+      }
     }
-    console.log('Inserted products and their relations.');
+    console.log('Inserted products, relations, and reviews.');
 
     // 4. Seed Banners
     console.log('Inserting promotion banners...');
@@ -515,11 +547,15 @@ async function main() {
       .values([
         {
           discountAmount: '50% OFF',
+          title: '50% OFF\nSummer Sale',
+          subtitle: 'SUMMER COLLECTION',
           image:
             'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop',
         },
         {
           discountAmount: '30% OFF',
+          title: '30% OFF\nWinter Sale',
+          subtitle: 'SPECIAL DEAL',
           image:
             'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
         },

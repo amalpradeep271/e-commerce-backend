@@ -92,6 +92,8 @@ export const bannerTable = pgTable('banners', {
   id: uuid('id').defaultRandom().primaryKey(),
   image: varchar('image').notNull(),
   discountAmount: varchar('discount_amount').notNull(), // e.g. "50% OFF"
+  title: varchar('title'),
+  subtitle: varchar('subtitle'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

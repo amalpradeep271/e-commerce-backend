@@ -7,6 +7,7 @@ import {
   productSizeTable,
   productImageTable,
   categoryTable,
+  reviewTable,
 } from '../db/schema';
 import { eq, and, gte, like, ilike, inArray, sql } from 'drizzle-orm';
 
@@ -38,6 +39,17 @@ export class ProductsService {
       .where(inArray(productImageTable.productId, productIds))
       .execute();
 
+    const reviewsData = await this.drizzleService.db
+      .select({
+        productId: reviewTable.productId,
+        avgRating: sql<string>`AVG(${reviewTable.rating})`,
+        count: sql<number>`COUNT(${reviewTable.id})`,
+      })
+      .from(reviewTable)
+      .where(inArray(reviewTable.productId, productIds))
+      .groupBy(reviewTable.productId)
+      .execute();
+
     return products.map((product) => {
       const productColors = colors
         .filter((c) => c.productId === product.id)
@@ -64,6 +76,10 @@ export class ProductsService {
         .filter((i) => i.productId === product.id)
         .map((i) => i.url);
 
+      const productReviews = reviewsData.find((r) => r.productId === product.id);
+      const avgRating = productReviews?.avgRating ? parseFloat(productReviews.avgRating) : 0.0;
+      const ratingCount = productReviews?.count ? Number(productReviews.count) : 0;
+
       return {
         productId: product.productId,
         categoryId: product.categoryId ?? '',
@@ -79,6 +95,8 @@ export class ProductsService {
         colors: productColors,
         sizes: productSizes,
         images: productImages,
+        rating: avgRating,
+        ratingCount: ratingCount,
       };
     });
   }

@@ -15,6 +15,9 @@ export class BannersService {
     return banners.map((banner) => ({
       BannerId: banner.id,
       BannerImage: banner.image,
+      Title: banner.title,
+      Subtitle: banner.subtitle,
+      DiscountAmount: banner.discountAmount,
     }));
   }
 }
