@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import { reviewTable, productTable, userTable } from '../db/schema';
 import { AddReviewDto } from './dto/add-review.dto';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 
 @Injectable()
 export class ReviewsService {
@@ -68,6 +68,7 @@ export class ReviewsService {
       .from(reviewTable)
       .innerJoin(userTable, eq(reviewTable.userId, userTable.id))
       .where(eq(reviewTable.productId, product.id))
+      .orderBy(desc(reviewTable.createdAt))
       .execute();
 
     // 3. Map to match the expected client JSON keys
