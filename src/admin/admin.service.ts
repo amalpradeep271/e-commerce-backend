@@ -164,15 +164,16 @@ export class AdminService {
     const [countResult] = await countQuery.execute();
     const total = countResult?.count || 0;
 
+    // Apply orderBy first
+    let paginatedQuery = query.orderBy(desc(productTable.createdAt)) as any;
+
     // Apply pagination if provided
     if (page && limit) {
       const offset = (page - 1) * limit;
-      query = query.limit(limit).offset(offset) as any;
+      paginatedQuery = paginatedQuery.limit(limit).offset(offset) as any;
     }
 
-    const products = await query
-      .orderBy(desc(productTable.createdAt))
-      .execute();
+    const products = await paginatedQuery.execute();
     if (products.length === 0) {
       return { products: [], total: 0 };
     }
