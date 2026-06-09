@@ -78,8 +78,12 @@ export class AdminController {
   async getProducts(
     @Query('search') search?: string,
     @Query('categoryId') categoryId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.adminService.getProducts(search, categoryId);
+    const pageNum = page ? parseInt(page) : undefined;
+    const limitNum = limit ? parseInt(limit) : undefined;
+    return this.adminService.getProducts(search, categoryId, pageNum, limitNum);
   }
 
   @Post('products')

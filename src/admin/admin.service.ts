@@ -139,7 +139,7 @@ export class AdminService {
   // PRODUCTS CRUD
   // ==========================================
 
-  async getProducts(search?: string, categoryId?: string) {
+  async getProducts(search?: string, categoryId?: string, page?: number, limit?: number) {
     let query = this.drizzleService.db.select().from(productTable);
     const conditions: any[] = [];
 
@@ -154,10 +154,28 @@ export class AdminService {
       query = query.where(and(...conditions)) as any;
     }
 
+    // Get total count matching conditions
+    let countQuery = this.drizzleService.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(productTable);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions)) as any;
+    }
+    const [countResult] = await countQuery.execute();
+    const total = countResult?.count || 0;
+
+    // Apply pagination if provided
+    if (page && limit) {
+      const offset = (page - 1) * limit;
+      query = query.limit(limit).offset(offset) as any;
+    }
+
     const products = await query
       .orderBy(desc(productTable.createdAt))
       .execute();
-    if (products.length === 0) return [];
+    if (products.length === 0) {
+      return { products: [], total: 0 };
+    }
 
     const productIds = products.map((p) => p.id);
 
@@ -179,7 +197,7 @@ export class AdminService {
       .where(inArray(productImageTable.productId, productIds))
       .execute();
 
-    return products.map((product) => {
+    const mappedProducts = products.map((product) => {
       const pColors = colors.filter((c) => c.productId === product.id);
       const pSizes = sizes.filter((s) => s.productId === product.id);
       const pImages = images.filter((i) => i.productId === product.id);
@@ -193,6 +211,8 @@ export class AdminService {
         images: pImages.map((i) => i.url),
       };
     });
+
+    return { products: mappedProducts, total };
   }
 
   async createProduct(dto: CreateProductDto) {
