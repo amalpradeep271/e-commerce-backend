@@ -9,9 +9,26 @@ import {
   text,
 } from 'drizzle-orm/pg-core';
 
+// 0. Tenants Table
+export const tenantTable = pgTable('tenants', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: varchar('slug').notNull().unique(),         // e.g. "khadi", "fabindia"
+  name: varchar('name').notNull(),                   // Display name shown in app
+  tagline: varchar('tagline'),                       // Subtitle on splash screen
+  logoUrl: varchar('logo_url'),                      // Cloudinary URL
+  primaryColor: varchar('primary_color').notNull().default('#4F378A'),
+  secondaryColor: varchar('secondary_color').notNull().default('#6750A4'),
+  fontFamily: varchar('font_family').default('beVietnamPro'),
+  currency: varchar('currency').default('INR'),
+  currencySymbol: varchar('currency_symbol').default('₹'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // 1. Users Table
 export const userTable = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   firstName: varchar('first_name').notNull(),
   lastName: varchar('last_name').notNull(),
   email: varchar('email').notNull().unique(),
@@ -31,6 +48,7 @@ export const ageTable = pgTable('ages', {
 // 3. Categories Table
 export const categoryTable = pgTable('categories', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   title: varchar('title').notNull(),
   image: varchar('image').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -39,6 +57,7 @@ export const categoryTable = pgTable('categories', {
 // 4. Products Table
 export const productTable = pgTable('products', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   productId: varchar('product_id').notNull().unique(), // maps 1:1 to frontend's productId field
   categoryId: uuid('category_id').references(() => categoryTable.id, {
     onDelete: 'cascade',
@@ -90,6 +109,7 @@ export const productSizeTable = pgTable('product_sizes', {
 // 8. Banners Table (Home Screen Carousel)
 export const bannerTable = pgTable('banners', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   image: varchar('image').notNull(),
   discountAmount: varchar('discount_amount').notNull(), // e.g. "50% OFF"
   title: varchar('title'),
@@ -197,6 +217,7 @@ export const favoriteTable = pgTable('favorites', {
 // 16. Coupons Table
 export const couponTable = pgTable('coupons', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   code: varchar('code').notNull().unique(),
   discountType: varchar('discount_type').notNull(), // 'percentage' | 'fixed'
   discountValue: numeric('discount_value', {
@@ -234,6 +255,7 @@ export const addressTable = pgTable('addresses', {
 // 18. Notifications Table
 export const notificationTable = pgTable('notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').references(() => tenantTable.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').references(() => userTable.id, {
     onDelete: 'cascade',
   }), // null means global/broadcast

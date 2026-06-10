@@ -15,6 +15,13 @@
       "when": 1780554337756,
       "tag": "0001_worried_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781070711789,
+      "tag": "0002_colorful_klaw",
+      "breakpoints": true
     }
   ]
 }

@@ -44,25 +44,31 @@ export class AdminService {
   // DASHBOARD STATS
   // ==========================================
 
-  async getDashboardStats() {
+  async getDashboardStats(tenantId: string) {
     const [usersCountResult] = await this.drizzleService.db
       .select({ count: sql<number>`count(*)::int` })
       .from(userTable)
+      .where(eq(userTable.tenantId, tenantId))
       .execute();
 
     const [ordersCountResult] = await this.drizzleService.db
       .select({ count: sql<number>`count(*)::int` })
       .from(orderTable)
+      .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(eq(userTable.tenantId, tenantId))
       .execute();
 
     const [productsCountResult] = await this.drizzleService.db
       .select({ count: sql<number>`count(*)::int` })
       .from(productTable)
+      .where(eq(productTable.tenantId, tenantId))
       .execute();
 
     const [revenueResult] = await this.drizzleService.db
       .select({ total: sql<string>`sum(total_price)` })
       .from(orderTable)
+      .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(eq(userTable.tenantId, tenantId))
       .execute();
 
     return {
@@ -73,7 +79,7 @@ export class AdminService {
     };
   }
 
-  async getRecentOrders() {
+  async getRecentOrders(tenantId: string) {
     const recentOrders = await this.drizzleService.db
       .select({
         id: orderTable.id,
@@ -89,6 +95,7 @@ export class AdminService {
       })
       .from(orderTable)
       .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(eq(userTable.tenantId, tenantId))
       .orderBy(desc(orderTable.createdDate))
       .limit(10)
       .execute();
@@ -99,7 +106,7 @@ export class AdminService {
     }));
   }
 
-  async getRevenueChart() {
+  async getRevenueChart(tenantId: string) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -109,7 +116,13 @@ export class AdminService {
         createdDate: orderTable.createdDate,
       })
       .from(orderTable)
-      .where(gte(orderTable.createdDate, thirtyDaysAgo))
+      .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(
+        and(
+          eq(userTable.tenantId, tenantId),
+          gte(orderTable.createdDate, thirtyDaysAgo),
+        ),
+      )
       .execute();
 
     const revenueMap = new Map<string, number>();
@@ -139,9 +152,9 @@ export class AdminService {
   // PRODUCTS CRUD
   // ==========================================
 
-  async getProducts(search?: string, categoryId?: string, page?: number, limit?: number) {
+  async getProducts(tenantId: string, search?: string, categoryId?: string, page?: number, limit?: number) {
     let query = this.drizzleService.db.select().from(productTable);
-    const conditions: any[] = [];
+    const conditions: any[] = [eq(productTable.tenantId, tenantId)];
 
     if (search) {
       conditions.push(ilike(productTable.title, `%${search}%`));
@@ -216,23 +229,33 @@ export class AdminService {
     return { products: mappedProducts, total };
   }
 
-  async createProduct(dto: CreateProductDto) {
-    // Check if category exists
+  async createProduct(tenantId: string, dto: CreateProductDto) {
+    // Check if category exists and belongs to the same tenant
     const [category] = await this.drizzleService.db
       .select({ id: categoryTable.id })
       .from(categoryTable)
-      .where(eq(categoryTable.id, dto.categoryId))
+      .where(
+        and(
+          eq(categoryTable.id, dto.categoryId),
+          eq(categoryTable.tenantId, tenantId),
+        ),
+      )
       .execute();
 
     if (!category) {
       throw new NotFoundException('Category not found');
     }
 
-    // Check if productId is unique
+    // Check if productId is unique within the tenant
     const [existingProduct] = await this.drizzleService.db
       .select({ id: productTable.id })
       .from(productTable)
-      .where(eq(productTable.productId, dto.productId))
+      .where(
+        and(
+          eq(productTable.productId, dto.productId),
+          eq(productTable.tenantId, tenantId),
+        ),
+      )
       .execute();
 
     if (existingProduct) {
@@ -247,6 +270,7 @@ export class AdminService {
         .values({
           productId: dto.productId,
           categoryId: dto.categoryId,
+          tenantId: tenantId,
           title: dto.title,
           description: dto.description,
           dimensions: dto.dimensions,
@@ -302,11 +326,11 @@ export class AdminService {
     });
   }
 
-  async getProduct(id: string) {
+  async getProduct(tenantId: string, id: string) {
     const [product] = await this.drizzleService.db
       .select()
       .from(productTable)
-      .where(eq(productTable.id, id))
+      .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
       .execute();
 
     if (!product) {
@@ -341,15 +365,33 @@ export class AdminService {
     };
   }
 
-  async updateProduct(id: string, dto: UpdateProductDto) {
+  async updateProduct(tenantId: string, id: string, dto: UpdateProductDto) {
     const [product] = await this.drizzleService.db
       .select()
       .from(productTable)
-      .where(eq(productTable.id, id))
+      .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
       .execute();
 
     if (!product) {
       throw new NotFoundException('Product not found');
+    }
+
+    // Verify category exists and belongs to the same tenant if being updated
+    if (dto.categoryId !== undefined) {
+      const [category] = await this.drizzleService.db
+        .select({ id: categoryTable.id })
+        .from(categoryTable)
+        .where(
+          and(
+            eq(categoryTable.id, dto.categoryId),
+            eq(categoryTable.tenantId, tenantId),
+          ),
+        )
+        .execute();
+
+      if (!category) {
+        throw new NotFoundException('Category not found');
+      }
     }
 
     return this.drizzleService.db.transaction(async (tx) => {
@@ -371,7 +413,7 @@ export class AdminService {
           gender: dto.gender,
           updatedAt: new Date(),
         })
-        .where(eq(productTable.id, id))
+        .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
         .execute();
 
       // Update Colors if provided
@@ -430,11 +472,11 @@ export class AdminService {
     });
   }
 
-  async deleteProduct(id: string) {
+  async deleteProduct(tenantId: string, id: string) {
     const [product] = await this.drizzleService.db
       .select()
       .from(productTable)
-      .where(eq(productTable.id, id))
+      .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
       .execute();
 
     if (!product) {
@@ -443,16 +485,16 @@ export class AdminService {
 
     await this.drizzleService.db
       .delete(productTable)
-      .where(eq(productTable.id, id))
+      .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
       .execute();
     return { message: 'Product deleted successfully' };
   }
 
-  async uploadProductImage(id: string, fileBuffer: Buffer) {
+  async uploadProductImage(tenantId: string, id: string, fileBuffer: Buffer) {
     const [product] = await this.drizzleService.db
       .select({ id: productTable.id })
       .from(productTable)
-      .where(eq(productTable.id, id))
+      .where(and(eq(productTable.id, id), eq(productTable.tenantId, tenantId)))
       .execute();
 
     if (!product) {
@@ -480,20 +522,22 @@ export class AdminService {
   // CATEGORIES CRUD
   // ==========================================
 
-  async getCategories() {
+  async getCategories(tenantId: string) {
     return this.drizzleService.db
       .select()
       .from(categoryTable)
+      .where(eq(categoryTable.tenantId, tenantId))
       .orderBy(desc(categoryTable.createdAt))
       .execute();
   }
 
-  async createCategory(dto: CreateCategoryDto) {
+  async createCategory(tenantId: string, dto: CreateCategoryDto) {
     const [category] = await this.drizzleService.db
       .insert(categoryTable)
       .values({
         title: dto.title,
         image: dto.image,
+        tenantId: tenantId,
       })
       .returning()
       .execute();
@@ -501,11 +545,11 @@ export class AdminService {
     return category;
   }
 
-  async updateCategory(id: string, dto: UpdateCategoryDto) {
+  async updateCategory(tenantId: string, id: string, dto: UpdateCategoryDto) {
     const [category] = await this.drizzleService.db
       .select()
       .from(categoryTable)
-      .where(eq(categoryTable.id, id))
+      .where(and(eq(categoryTable.id, id), eq(categoryTable.tenantId, tenantId)))
       .execute();
 
     if (!category) {
@@ -515,18 +559,18 @@ export class AdminService {
     const [updated] = await this.drizzleService.db
       .update(categoryTable)
       .set(dto)
-      .where(eq(categoryTable.id, id))
+      .where(and(eq(categoryTable.id, id), eq(categoryTable.tenantId, tenantId)))
       .returning()
       .execute();
 
     return updated;
   }
 
-  async deleteCategory(id: string) {
+  async deleteCategory(tenantId: string, id: string) {
     const [category] = await this.drizzleService.db
       .select()
       .from(categoryTable)
-      .where(eq(categoryTable.id, id))
+      .where(and(eq(categoryTable.id, id), eq(categoryTable.tenantId, tenantId)))
       .execute();
 
     if (!category) {
@@ -535,7 +579,7 @@ export class AdminService {
 
     await this.drizzleService.db
       .delete(categoryTable)
-      .where(eq(categoryTable.id, id))
+      .where(and(eq(categoryTable.id, id), eq(categoryTable.tenantId, tenantId)))
       .execute();
     return { message: 'Category deleted successfully' };
   }
@@ -544,20 +588,22 @@ export class AdminService {
   // BANNERS CRUD
   // ==========================================
 
-  async getBanners() {
+  async getBanners(tenantId: string) {
     return this.drizzleService.db
       .select()
       .from(bannerTable)
+      .where(eq(bannerTable.tenantId, tenantId))
       .orderBy(desc(bannerTable.createdAt))
       .execute();
   }
 
-  async createBanner(dto: CreateBannerDto) {
+  async createBanner(tenantId: string, dto: CreateBannerDto) {
     const [banner] = await this.drizzleService.db
       .insert(bannerTable)
       .values({
         image: dto.image,
         discountAmount: dto.discountAmount,
+        tenantId: tenantId,
       })
       .returning()
       .execute();
@@ -565,11 +611,11 @@ export class AdminService {
     return banner;
   }
 
-  async updateBanner(id: string, dto: UpdateBannerDto) {
+  async updateBanner(tenantId: string, id: string, dto: UpdateBannerDto) {
     const [banner] = await this.drizzleService.db
       .select()
       .from(bannerTable)
-      .where(eq(bannerTable.id, id))
+      .where(and(eq(bannerTable.id, id), eq(bannerTable.tenantId, tenantId)))
       .execute();
 
     if (!banner) {
@@ -579,18 +625,18 @@ export class AdminService {
     const [updated] = await this.drizzleService.db
       .update(bannerTable)
       .set(dto)
-      .where(eq(bannerTable.id, id))
+      .where(and(eq(bannerTable.id, id), eq(bannerTable.tenantId, tenantId)))
       .returning()
       .execute();
 
     return updated;
   }
 
-  async deleteBanner(id: string) {
+  async deleteBanner(tenantId: string, id: string) {
     const [banner] = await this.drizzleService.db
       .select()
       .from(bannerTable)
-      .where(eq(bannerTable.id, id))
+      .where(and(eq(bannerTable.id, id), eq(bannerTable.tenantId, tenantId)))
       .execute();
 
     if (!banner) {
@@ -599,7 +645,7 @@ export class AdminService {
 
     await this.drizzleService.db
       .delete(bannerTable)
-      .where(eq(bannerTable.id, id))
+      .where(and(eq(bannerTable.id, id), eq(bannerTable.tenantId, tenantId)))
       .execute();
     return { message: 'Banner deleted successfully' };
   }
@@ -608,7 +654,7 @@ export class AdminService {
   // ORDERS CRUD
   // ==========================================
 
-  async getOrders(status?: string) {
+  async getOrders(tenantId: string, status?: string) {
     const query = this.drizzleService.db
       .select({
         id: orderTable.id,
@@ -624,7 +670,8 @@ export class AdminService {
         },
       })
       .from(orderTable)
-      .innerJoin(userTable, eq(orderTable.userId, userTable.id));
+      .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(eq(userTable.tenantId, tenantId));
 
     const orders = await query.orderBy(desc(orderTable.createdDate)).execute();
     if (orders.length === 0) return [];
@@ -663,7 +710,7 @@ export class AdminService {
     return mapped;
   }
 
-  async getOrder(id: string) {
+  async getOrder(tenantId: string, id: string) {
     const [order] = await this.drizzleService.db
       .select({
         id: orderTable.id,
@@ -680,7 +727,7 @@ export class AdminService {
       })
       .from(orderTable)
       .innerJoin(userTable, eq(orderTable.userId, userTable.id))
-      .where(eq(orderTable.id, id))
+      .where(and(eq(orderTable.id, id), eq(userTable.tenantId, tenantId)))
       .execute();
 
     if (!order) {
@@ -707,11 +754,12 @@ export class AdminService {
     };
   }
 
-  async updateOrderStatus(id: string, dto: UpdateOrderStatusDto) {
+  async updateOrderStatus(tenantId: string, id: string, dto: UpdateOrderStatusDto) {
     const [order] = await this.drizzleService.db
-      .select()
+      .select({ id: orderTable.id })
       .from(orderTable)
-      .where(eq(orderTable.id, id))
+      .innerJoin(userTable, eq(orderTable.userId, userTable.id))
+      .where(and(eq(orderTable.id, id), eq(userTable.tenantId, tenantId)))
       .execute();
 
     if (!order) {
@@ -743,7 +791,7 @@ export class AdminService {
   // USERS CRUD
   // ==========================================
 
-  async getUsers() {
+  async getUsers(tenantId: string) {
     const users = await this.drizzleService.db
       .select({
         id: userTable.id,
@@ -755,17 +803,18 @@ export class AdminService {
         createdAt: userTable.createdAt,
       })
       .from(userTable)
+      .where(eq(userTable.tenantId, tenantId))
       .orderBy(desc(userTable.createdAt))
       .execute();
 
     return users;
   }
 
-  async updateUserRole(id: string, dto: UpdateUserRoleDto) {
+  async updateUserRole(tenantId: string, id: string, dto: UpdateUserRoleDto) {
     const [user] = await this.drizzleService.db
       .select()
       .from(userTable)
-      .where(eq(userTable.id, id))
+      .where(and(eq(userTable.id, id), eq(userTable.tenantId, tenantId)))
       .execute();
 
     if (!user) {
@@ -775,7 +824,7 @@ export class AdminService {
     const [updated] = await this.drizzleService.db
       .update(userTable)
       .set({ role: dto.role, updatedAt: new Date() })
-      .where(eq(userTable.id, id))
+      .where(and(eq(userTable.id, id), eq(userTable.tenantId, tenantId)))
       .returning({
         id: userTable.id,
         firstName: userTable.firstName,
@@ -792,7 +841,7 @@ export class AdminService {
   // REVIEWS CRUD
   // ==========================================
 
-  async getReviews() {
+  async getReviews(tenantId: string) {
     const reviews = await this.drizzleService.db
       .select({
         id: reviewTable.id,
@@ -814,6 +863,7 @@ export class AdminService {
       .from(reviewTable)
       .innerJoin(userTable, eq(reviewTable.userId, userTable.id))
       .innerJoin(productTable, eq(reviewTable.productId, productTable.id))
+      .where(eq(userTable.tenantId, tenantId))
       .orderBy(desc(reviewTable.createdAt))
       .execute();
 
@@ -823,11 +873,12 @@ export class AdminService {
     }));
   }
 
-  async deleteReview(id: string) {
+  async deleteReview(tenantId: string, id: string) {
     const [review] = await this.drizzleService.db
-      .select()
+      .select({ id: reviewTable.id })
       .from(reviewTable)
-      .where(eq(reviewTable.id, id))
+      .innerJoin(userTable, eq(reviewTable.userId, userTable.id))
+      .where(and(eq(reviewTable.id, id), eq(userTable.tenantId, tenantId)))
       .execute();
 
     if (!review) {
@@ -845,10 +896,11 @@ export class AdminService {
   // COUPONS CRUD
   // ==========================================
 
-  async getCoupons() {
+  async getCoupons(tenantId: string) {
     const coupons = await this.drizzleService.db
       .select()
       .from(couponTable)
+      .where(eq(couponTable.tenantId, tenantId))
       .orderBy(desc(couponTable.createdAt))
       .execute();
 
@@ -859,11 +911,16 @@ export class AdminService {
     }));
   }
 
-  async createCoupon(dto: CreateCouponDto) {
+  async createCoupon(tenantId: string, dto: CreateCouponDto) {
     const [existing] = await this.drizzleService.db
       .select()
       .from(couponTable)
-      .where(eq(couponTable.code, dto.code))
+      .where(
+        and(
+          eq(couponTable.code, dto.code),
+          eq(couponTable.tenantId, tenantId),
+        ),
+      )
       .execute();
 
     if (existing) {
@@ -883,6 +940,7 @@ export class AdminService {
         maxUses: dto.maxUses,
         expiresAt: new Date(dto.expiresAt),
         isActive: dto.isActive ?? true,
+        tenantId: tenantId,
       })
       .returning()
       .execute();
@@ -890,11 +948,11 @@ export class AdminService {
     return coupon;
   }
 
-  async updateCoupon(id: string, dto: UpdateCouponDto) {
+  async updateCoupon(tenantId: string, id: string, dto: UpdateCouponDto) {
     const [existing] = await this.drizzleService.db
       .select()
       .from(couponTable)
-      .where(eq(couponTable.id, id))
+      .where(and(eq(couponTable.id, id), eq(couponTable.tenantId, tenantId)))
       .execute();
 
     if (!existing) {
@@ -912,18 +970,18 @@ export class AdminService {
     const [updated] = await this.drizzleService.db
       .update(couponTable)
       .set(updateFields)
-      .where(eq(couponTable.id, id))
+      .where(and(eq(couponTable.id, id), eq(couponTable.tenantId, tenantId)))
       .returning()
       .execute();
 
     return updated;
   }
 
-  async deleteCoupon(id: string) {
+  async deleteCoupon(tenantId: string, id: string) {
     const [coupon] = await this.drizzleService.db
       .select()
       .from(couponTable)
-      .where(eq(couponTable.id, id))
+      .where(and(eq(couponTable.id, id), eq(couponTable.tenantId, tenantId)))
       .execute();
 
     if (!coupon) {
@@ -932,12 +990,12 @@ export class AdminService {
 
     await this.drizzleService.db
       .delete(couponTable)
-      .where(eq(couponTable.id, id))
+      .where(and(eq(couponTable.id, id), eq(couponTable.tenantId, tenantId)))
       .execute();
     return { message: 'Coupon deleted successfully' };
   }
 
-  async getNotifications() {
+  async getNotifications(tenantId: string) {
     return this.drizzleService.db
       .select({
         id: notificationTable.id,
@@ -954,17 +1012,23 @@ export class AdminService {
       })
       .from(notificationTable)
       .leftJoin(userTable, eq(notificationTable.userId, userTable.id))
+      .where(eq(notificationTable.tenantId, tenantId))
       .orderBy(desc(notificationTable.createdAt))
       .execute();
   }
 
-  async sendNotification(dto: SendNotificationDto) {
+  async sendNotification(tenantId: string, dto: SendNotificationDto) {
     if (dto.userId) {
-      // Validate user exists
+      // Validate user exists and belongs to the same tenant
       const [user] = await this.drizzleService.db
         .select({ id: userTable.id })
         .from(userTable)
-        .where(eq(userTable.id, dto.userId))
+        .where(
+          and(
+            eq(userTable.id, dto.userId),
+            eq(userTable.tenantId, tenantId),
+          ),
+        )
         .execute();
 
       if (!user) {
@@ -979,6 +1043,7 @@ export class AdminService {
         title: dto.title,
         body: dto.body,
         type: dto.type,
+        tenantId: tenantId,
       })
       .returning()
       .execute();

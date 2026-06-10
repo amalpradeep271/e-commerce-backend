@@ -5,20 +5,20 @@ import {
 } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import { couponTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
 
 @Injectable()
 export class CouponsService {
   constructor(private readonly drizzleService: DrizzleService) {}
 
-  async validateCoupon(validateCouponDto: ValidateCouponDto) {
+  async validateCoupon(validateCouponDto: ValidateCouponDto, tenantId: string) {
     const { code, orderAmount } = validateCouponDto;
 
     const [coupon] = await this.drizzleService.db
       .select()
       .from(couponTable)
-      .where(eq(couponTable.code, code))
+      .where(and(eq(couponTable.code, code), eq(couponTable.tenantId, tenantId)))
       .execute();
 
     if (!coupon) {

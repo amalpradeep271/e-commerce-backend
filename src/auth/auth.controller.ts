@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -22,8 +23,8 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 499, description: 'Email already exists' })
-  async signUp(@Body() signupDto: SignupDto) {
-    return this.authService.signUp(signupDto);
+  async signUp(@Req() req: any, @Body() signupDto: SignupDto) {
+    return this.authService.signUp(signupDto, req.tenantId);
   }
 
   @Post('signin')
@@ -31,8 +32,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Log in an existing user' })
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async signIn(@Body() signinDto: SigninDto) {
-    return this.authService.signIn(signinDto);
+  async signIn(@Req() req: any, @Body() signinDto: SigninDto) {
+    const hasExplicitTenant = !!req.headers['x-tenant-slug'];
+    return this.authService.signIn(signinDto, hasExplicitTenant ? req.tenantId : undefined);
   }
 
   @Post('refresh')

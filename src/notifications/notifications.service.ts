@@ -5,20 +5,23 @@ import {
 } from '@nestjs/common';
 import { DrizzleService } from '../db/db.service';
 import { notificationTable } from '../db/schema';
-import { eq, or, isNull } from 'drizzle-orm';
+import { eq, or, isNull, and } from 'drizzle-orm';
 
 @Injectable()
 export class NotificationsService {
   constructor(private readonly drizzleService: DrizzleService) {}
 
-  async getNotifications(userId: string) {
+  async getNotifications(userId: string, tenantId: string) {
     return this.drizzleService.db
       .select()
       .from(notificationTable)
       .where(
-        or(
-          eq(notificationTable.userId, userId),
-          isNull(notificationTable.userId),
+        and(
+          eq(notificationTable.tenantId, tenantId),
+          or(
+            eq(notificationTable.userId, userId),
+            isNull(notificationTable.userId),
+          ),
         ),
       )
       .orderBy(notificationTable.createdAt)

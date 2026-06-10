@@ -9,6 +9,7 @@ import {
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CurrentTenantId } from '../common/decorators/current-tenant-id.decorator';
 
 import { GetProductsQueryDto } from './dto/get-products-query.dto';
 
@@ -38,8 +39,11 @@ export class ProductsController {
     status: 200,
     description: 'Returns products matching criteria',
   })
-  async getProducts(@Query() query: GetProductsQueryDto) {
-    return this.productsService.getProducts(query);
+  async getProducts(
+    @CurrentTenantId() tenantId: string,
+    @Query() query: GetProductsQueryDto,
+  ) {
+    return this.productsService.getProducts(query, tenantId);
   }
 
   @Get('favorites')
@@ -63,7 +67,7 @@ export class ProductsController {
     @CurrentUser() user: any,
     @Param('productId') productId: string,
   ) {
-    const isFav = await this.productsService.isFavorite(user.id, productId);
+    const isFav = await this.productsService.isFavorite(user.id, productId, user.tenantId);
     return isFav;
   }
 
@@ -85,6 +89,7 @@ export class ProductsController {
     const result = await this.productsService.toggleFavorite(
       user.id,
       productId,
+      user.tenantId,
     );
     return result;
   }

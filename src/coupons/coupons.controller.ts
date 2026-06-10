@@ -8,6 +8,7 @@ import {
 import { CouponsService } from './coupons.service';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Coupons')
 @Controller('coupons')
@@ -22,7 +23,10 @@ export class CouponsController {
     status: 200,
     description: 'Returns discount details if coupon is valid',
   })
-  async validateCoupon(@Body() validateCouponDto: ValidateCouponDto) {
-    return this.couponsService.validateCoupon(validateCouponDto);
+  async validateCoupon(
+    @CurrentUser() user: any,
+    @Body() validateCouponDto: ValidateCouponDto,
+  ) {
+    return this.couponsService.validateCoupon(validateCouponDto, user.tenantId);
   }
 }

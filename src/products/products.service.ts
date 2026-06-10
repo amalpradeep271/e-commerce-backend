@@ -101,17 +101,20 @@ export class ProductsService {
     });
   }
 
-  async getProducts(params: {
-    categoryId?: string;
-    search?: string;
-    sort?: string;
-    page?: number;
-    limit?: number;
-  }) {
+  async getProducts(
+    params: {
+      categoryId?: string;
+      search?: string;
+      sort?: string;
+      page?: number;
+      limit?: number;
+    },
+    tenantId: string,
+  ) {
     const { categoryId, search, sort, page, limit } = params;
 
     let query = this.drizzleService.db.select().from(productTable);
-    const conditions: any[] = [];
+    const conditions: any[] = [eq(productTable.tenantId, tenantId)];
 
     // Filter by Category
     if (categoryId) {
@@ -149,12 +152,17 @@ export class ProductsService {
     return this.populateProductsRelations(dbProducts);
   }
 
-  async isFavorite(userId: string, productId: string): Promise<boolean> {
+  async isFavorite(userId: string, productId: string, tenantId: string): Promise<boolean> {
     // Resolve UUID for internal product ID
     const [product] = await this.drizzleService.db
       .select({ id: productTable.id })
       .from(productTable)
-      .where(eq(productTable.productId, productId))
+      .where(
+        and(
+          eq(productTable.productId, productId),
+          eq(productTable.tenantId, tenantId),
+        ),
+      )
       .execute();
 
     if (!product) return false;
@@ -173,11 +181,16 @@ export class ProductsService {
     return !!fav;
   }
 
-  async toggleFavorite(userId: string, productId: string): Promise<boolean> {
+  async toggleFavorite(userId: string, productId: string, tenantId: string): Promise<boolean> {
     const [product] = await this.drizzleService.db
       .select({ id: productTable.id })
       .from(productTable)
-      .where(eq(productTable.productId, productId))
+      .where(
+        and(
+          eq(productTable.productId, productId),
+          eq(productTable.tenantId, tenantId),
+        ),
+      )
       .execute();
 
     if (!product) {

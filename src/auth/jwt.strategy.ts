@@ -36,6 +36,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         firstName: userTable.firstName,
         lastName: userTable.lastName,
         role: userTable.role,
+        tenantId: userTable.tenantId,
       })
       .from(userTable)
       .where(eq(userTable.id, userId))

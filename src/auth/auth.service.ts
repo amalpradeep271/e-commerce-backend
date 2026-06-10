@@ -9,7 +9,7 @@ import { ageTable, userTable } from '../db/schema';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 @Injectable()
 export class AuthService {
@@ -18,14 +18,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(signupDto: SignupDto) {
+  async signUp(signupDto: SignupDto, tenantId: string) {
     const { email, password, firstName, lastName } = signupDto;
 
     // 1. Check if email exists
     const [existingUser] = await this.drizzleService.db
       .select({ id: userTable.id })
       .from(userTable)
-      .where(eq(userTable.email, email))
+      .where(and(eq(userTable.email, email), eq(userTable.tenantId, tenantId)))
       .execute();
 
     if (existingUser) {
@@ -44,6 +44,7 @@ export class AuthService {
         lastName,
         email,
         passwordHash,
+        tenantId,
       })
       .returning({
         id: userTable.id,
@@ -51,16 +52,17 @@ export class AuthService {
         lastName: userTable.lastName,
         email: userTable.email,
         image: userTable.image,
+        tenantId: userTable.tenantId,
       })
       .execute();
 
     // 4. Generate JWT
     const accessToken = this.jwtService.sign(
-      { userId: newUser.id, email: newUser.email, type: 'access' },
+      { userId: newUser.id, email: newUser.email, tenantId: newUser.tenantId, type: 'access' },
       { expiresIn: '1d' },
     );
     const refreshToken = this.jwtService.sign(
-      { userId: newUser.id, email: newUser.email, type: 'refresh' },
+      { userId: newUser.id, email: newUser.email, tenantId: newUser.tenantId, type: 'refresh' },
       { expiresIn: '7d' },
     );
 
@@ -78,10 +80,10 @@ export class AuthService {
     };
   }
 
-  async signIn(signinDto: SigninDto) {
+  async signIn(signinDto: SigninDto, tenantId: string) {
     const { email, password } = signinDto;
 
-    // 1. Find user
+    // 1. Find user by email
     const [user] = await this.drizzleService.db
       .select()
       .from(userTable)
@@ -92,6 +94,11 @@ export class AuthService {
       throw new UnauthorizedException('No user found for that email');
     }
 
+    // Verify user belongs to the requested tenant (if tenantId is provided)
+    if (tenantId && user.tenantId !== tenantId) {
+      throw new UnauthorizedException('Wrong tenant for this user');
+    }
+
     // 2. Compare password
     const isPasswordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordMatch) {
@@ -100,11 +107,11 @@ export class AuthService {
 
     // 3. Generate JWT
     const accessToken = this.jwtService.sign(
-      { userId: user.id, email: user.email, type: 'access' },
+      { userId: user.id, email: user.email, tenantId: user.tenantId, type: 'access' },
       { expiresIn: '1d' },
     );
     const refreshToken = this.jwtService.sign(
-      { userId: user.id, email: user.email, type: 'refresh' },
+      { userId: user.id, email: user.email, tenantId: user.tenantId, type: 'refresh' },
       { expiresIn: '7d' },
     );
 
@@ -142,6 +149,7 @@ export class AuthService {
         .select({
           id: userTable.id,
           email: userTable.email,
+          tenantId: userTable.tenantId,
         })
         .from(userTable)
         .where(eq(userTable.id, payload.userId))
@@ -152,11 +160,11 @@ export class AuthService {
       }
 
       const newAccessToken = this.jwtService.sign(
-        { userId: user.id, email: user.email, type: 'access' },
+        { userId: user.id, email: user.email, tenantId: user.tenantId, type: 'access' },
         { expiresIn: '1d' },
       );
       const newRefreshToken = this.jwtService.sign(
-        { userId: user.id, email: user.email, type: 'refresh' },
+        { userId: user.id, email: user.email, tenantId: user.tenantId, type: 'refresh' },
         { expiresIn: '7d' },
       );
 

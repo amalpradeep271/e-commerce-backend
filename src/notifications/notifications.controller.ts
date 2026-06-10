@@ -20,7 +20,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get notifications for logged-in user' })
   @ApiResponse({ status: 200, description: 'Returns list of notifications' })
   async getNotifications(@CurrentUser() user: any) {
-    return this.notificationsService.getNotifications(user.id);
+    return this.notificationsService.getNotifications(user.id, user.tenantId);
   }
 
   @Patch(':id/read')
